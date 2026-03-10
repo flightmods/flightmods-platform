@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type Addon = {
@@ -41,7 +42,11 @@ export default async function AddonsPage() {
               key={addon.id}
               className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
             >
-              <h2 className="text-2xl font-semibold mb-2">{addon.title}</h2>
+              <Link href={`/addons/${addon.id}`}>
+                <h2 className="text-2xl font-semibold mb-2 hover:text-blue-400">
+                  {addon.title}
+                </h2>
+              </Link>
 
               <p className="text-zinc-400 mb-4 line-clamp-3">
                 {addon.description}
@@ -55,14 +60,23 @@ export default async function AddonsPage() {
                 <p>Downloads: {addon.downloads}</p>
               </div>
 
-              <a
-                href={addon.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
-              >
-                Download
-              </a>
+              <div className="flex gap-3">
+                <Link
+                  href={`/addons/${addon.id}`}
+                  className="inline-block rounded-lg bg-zinc-700 px-4 py-2 hover:bg-zinc-600"
+                >
+                  Details
+                </Link>
+
+                <a
+                  href={addon.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
+                >
+                  Download
+                </a>
+              </div>
             </div>
           ))}
         </div>
