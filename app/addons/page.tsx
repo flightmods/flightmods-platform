@@ -9,6 +9,8 @@ type Addon = {
   version: string;
   downloads: number;
   created_at: string;
+  sim: string;
+  category: string;
 };
 
 export default async function AddonsPage() {
@@ -37,7 +39,7 @@ export default async function AddonsPage() {
           {addons.map((addon: Addon) => (
             <div
               key={addon.id}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 shadow-sm"
+              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
             >
               <h2 className="text-2xl font-semibold mb-2">{addon.title}</h2>
 
@@ -46,6 +48,8 @@ export default async function AddonsPage() {
               </p>
 
               <div className="text-sm text-zinc-500 mb-4 space-y-1">
+                <p>Simulator: {addon.sim}</p>
+                <p>Kategorie: {addon.category}</p>
                 <p>Autor: {addon.author}</p>
                 <p>Version: {addon.version}</p>
                 <p>Downloads: {addon.downloads}</p>
