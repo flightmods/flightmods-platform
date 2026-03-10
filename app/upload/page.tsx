@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+type UserLike = {
+  email?: string;
+};
 
 export default function UploadPage() {
   const [title, setTitle] = useState("");
@@ -9,58 +13,135 @@ export default function UploadPage() {
   const [sim, setSim] = useState("MSFS 2020");
   const [category, setCategory] = useState("Aircraft");
   const [file, setFile] = useState<File | null>(null);
+  const [user, setUser] = useState<UserLike | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error("Fehler beim Laden des Users:", error.message);
+        setUser(null);
+      } else {
+        setUser(data.user ?? null);
+      }
+
+      setLoading(false);
+    };
+
+    getUser();
+  }, []);
 
   const handleUpload = async () => {
+    if (!user) {
+      alert("Du musst eingeloggt sein, um ein Addon hochzuladen.");
+      return;
+    }
+
+    if (!title.trim()) {
+      alert("Bitte einen Titel eingeben.");
+      return;
+    }
+
+    if (!description.trim()) {
+      alert("Bitte eine Beschreibung eingeben.");
+      return;
+    }
+
     if (!file) {
       alert("Bitte eine Datei auswählen.");
       return;
     }
 
-    const fileName = `${Date.now()}_${file.name}`;
+    setUploading(true);
 
-    const { error: uploadError } = await supabase.storage
-      .from("addons")
-      .upload(fileName, file);
+    try {
+      const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
 
-    if (uploadError) {
-      alert(uploadError.message);
-      return;
+      const { error: uploadError } = await supabase.storage
+        .from("addons")
+        .upload(safeFileName, file);
+
+      if (uploadError) {
+        alert(`Upload fehlgeschlagen: ${uploadError.message}`);
+        setUploading(false);
+        return;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("addons").getPublicUrl(safeFileName);
+
+      const { error: insertError } = await supabase.from("addons").insert([
+        {
+          title: title.trim(),
+          description: description.trim(),
+          sim,
+          category,
+          file_url: publicUrl,
+          author: user.email ?? "unknown",
+          version: "1.0",
+          downloads: 0,
+        },
+      ]);
+
+      if (insertError) {
+        alert(`Datenbankeintrag fehlgeschlagen: ${insertError.message}`);
+        setUploading(false);
+        return;
+      }
+
+      alert("Addon erfolgreich hochgeladen!");
+
+      setTitle("");
+      setDescription("");
+      setSim("MSFS 2020");
+      setCategory("Aircraft");
+      setFile(null);
+
+      const fileInput = document.getElementById(
+        "addon-file-input"
+      ) as HTMLInputElement | null;
+      if (fileInput) {
+        fileInput.value = "";
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Beim Upload ist ein unerwarteter Fehler aufgetreten.");
+    } finally {
+      setUploading(false);
     }
-
-    const fileUrl = supabase.storage
-      .from("addons")
-      .getPublicUrl(fileName).data.publicUrl;
-
-    const { error: insertError } = await supabase.from("addons").insert([
-      {
-        title,
-        description,
-        sim,
-        category,
-        file_url: fileUrl,
-        author: "testuser",
-        version: "1.0",
-        downloads: 0,
-      },
-    ]);
-
-    if (insertError) {
-      alert(insertError.message);
-      return;
-    }
-
-    alert("Addon erfolgreich hochgeladen!");
-
-    setTitle("");
-    setDescription("");
-    setSim("MSFS 2020");
-    setCategory("Aircraft");
-    setFile(null);
   };
+
+  if (loading) {
+    return (
+      <main className="max-w-xl mx-auto py-12 px-6">
+        <h1 className="text-3xl font-bold mb-6">Addon Upload</h1>
+        <p className="text-zinc-400">Lade Benutzerinformationen...</p>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="max-w-xl mx-auto py-12 px-6">
+        <h1 className="text-3xl font-bold mb-6">Addon Upload</h1>
+        <p className="text-red-400">
+          Du musst eingeloggt sein, um ein Addon hochzuladen.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-xl mx-auto py-12 px-6">
       <h1 className="text-3xl font-bold mb-6">Addon Upload</h1>
+
+      <p className="text-zinc-400 mb-6">
+        Eingeloggt als: <span className="text-white">{user.email}</span>
+      </p>
 
       <input
         className="w-full mb-4 p-3 bg-zinc-800 rounded"
@@ -70,7 +151,7 @@ export default function UploadPage() {
       />
 
       <textarea
-        className="w-full mb-4 p-3 bg-zinc-800 rounded"
+        className="w-full mb-4 p-3 bg-zinc-800 rounded min-h-[140px]"
         placeholder="Beschreibung"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
@@ -99,16 +180,18 @@ export default function UploadPage() {
       </select>
 
       <input
+        id="addon-file-input"
         type="file"
-        className="mb-4 block w-full"
+        className="mb-6 block w-full"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
       />
 
       <button
-        className="bg-blue-600 px-6 py-3 rounded hover:bg-blue-700"
+        className="bg-blue-600 px-6 py-3 rounded hover:bg-blue-700 disabled:opacity-50"
         onClick={handleUpload}
+        disabled={uploading}
       >
-        Upload
+        {uploading ? "Lade hoch..." : "Upload"}
       </button>
     </main>
   );
