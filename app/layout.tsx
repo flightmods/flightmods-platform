@@ -32,3 +32,13 @@ export default function RootLayout({
     </html>
   );
 }
+<nav className="flex justify-between p-4 bg-zinc-900 text-white">
+  <div className="font-bold">FlightMods</div>
+
+  <div className="flex gap-4">
+    <a href="/">Home</a>
+    <a href="/addons">Addons</a>
+    <a href="/login">Login</a>
+    <a href="/register">Register</a>
+  </div>
+</nav>
