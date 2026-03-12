@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type UserLike = {
+  id: string;
   email?: string;
 };
 
 export default function UploadPage() {
+  const [image, setImage] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sim, setSim] = useState("MSFS 2020");
@@ -16,6 +18,7 @@ export default function UploadPage() {
   const [user, setUser] = useState<UserLike | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -58,6 +61,19 @@ export default function UploadPage() {
     setUploading(true);
 
     try {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError || !profileData) {
+        alert("Bitte richte zuerst dein Profil ein.");
+        window.location.href = "/setup-profile";
+        setUploading(false);
+        return;
+      }
+
       const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
 
       const { error: uploadError } = await supabase.storage
@@ -81,7 +97,9 @@ export default function UploadPage() {
           sim,
           category,
           file_url: publicUrl,
-          author: user.email ?? "unknown",
+          author: profileData.username,
+          author_id: user.id,
+          author_name: profileData.username,
           version: "1.0",
           downloads: 0,
         },
@@ -100,6 +118,8 @@ export default function UploadPage() {
       setSim("MSFS 2020");
       setCategory("Aircraft");
       setFile(null);
+      setImage(null);
+      setImagePreview(null);
 
       const fileInput = document.getElementById(
         "addon-file-input"
@@ -180,11 +200,41 @@ export default function UploadPage() {
       </select>
 
       <input
-        id="addon-file-input"
-        type="file"
-        className="mb-6 block w-full"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-      />
+  id="addon-file-input"
+  type="file"
+  className="mb-6 block w-full"
+  onChange={(e) => setFile(e.target.files?.[0] || null)}
+/>
+
+<p className="text-sm text-zinc-400 mb-1">Screenshot / Cover Image</p>
+
+<input
+  type="file"
+  accept="image/*"
+  className="mb-4 block w-full"
+  onChange={(e) => {
+    const selectedImage = e.target.files?.[0] || null;
+    setImage(selectedImage);
+
+    if (selectedImage) {
+      const previewUrl = URL.createObjectURL(selectedImage);
+      setImagePreview(previewUrl);
+    } else {
+      setImagePreview(null);
+    }
+  }}
+/>
+
+{imagePreview && (
+  <div className="mb-6">
+    <p className="text-sm text-zinc-400 mb-2">Vorschau</p>
+    <img
+      src={imagePreview}
+      alt="Bildvorschau"
+      className="w-full max-h-64 object-cover rounded-xl border border-zinc-800"
+    />
+  </div>
+)}
 
       <button
         className="bg-blue-600 px-6 py-3 rounded hover:bg-blue-700 disabled:opacity-50"
