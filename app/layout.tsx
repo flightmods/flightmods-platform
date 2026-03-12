@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "FlightMods",
@@ -12,21 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="de">
       <body className="bg-black text-white">
-        <nav className="flex justify-between items-center p-4 bg-zinc-900 border-b border-zinc-800">
-          <div className="font-bold text-lg">
-            <a href="/">FlightMods</a>
-          </div>
-
-          <div className="flex gap-6 text-sm">
-            <a href="/addons">Addons</a>
-            <a href="/upload">Upload</a>
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
-          </div>
-        </nav>
-
+        <Navbar />
         {children}
       </body>
     </html>
