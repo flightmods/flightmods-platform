@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import DownloadButton from "@/components/DownloadButton";
 
 type Addon = {
   id: string;
@@ -14,30 +18,94 @@ type Addon = {
   category: string;
 };
 
-export default async function AddonsPage() {
-  const { data: addons, error } = await supabase
-    .from("addons")
-    .select("*")
-    .order("created_at", { ascending: false });
+export default function AddonsPage() {
+  const [addons, setAddons] = useState<Addon[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [simFilter, setSimFilter] = useState("Alle");
+  const [categoryFilter, setCategoryFilter] = useState("Alle");
 
-  if (error) {
-    return (
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold mb-6">Addons</h1>
-        <p className="text-red-400">Fehler beim Laden der Addons: {error.message}</p>
-      </main>
-    );
-  }
+  useEffect(() => {
+    const loadAddons = async () => {
+      const { data, error } = await supabase
+        .from("addons")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Fehler beim Laden der Addons:", error.message);
+      } else if (data) {
+        setAddons(data as Addon[]);
+      }
+
+      setLoading(false);
+    };
+
+    loadAddons();
+  }, []);
+
+  const filteredAddons = useMemo(() => {
+    return addons.filter((addon) => {
+      const matchesSearch =
+        addon.title.toLowerCase().includes(search.toLowerCase()) ||
+        addon.description.toLowerCase().includes(search.toLowerCase()) ||
+        addon.author.toLowerCase().includes(search.toLowerCase());
+
+      const matchesSim =
+        simFilter === "Alle" ? true : addon.sim === simFilter;
+
+      const matchesCategory =
+        categoryFilter === "Alle" ? true : addon.category === categoryFilter;
+
+      return matchesSearch && matchesSim && matchesCategory;
+    });
+  }, [addons, search, simFilter, categoryFilter]);
 
   return (
     <main className="max-w-6xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold mb-8">Addons</h1>
 
-      {!addons || addons.length === 0 ? (
-        <p className="text-zinc-400">Noch keine Addons vorhanden.</p>
+      <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <input
+          type="text"
+          placeholder="Suche nach Titel, Beschreibung oder Autor..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="md:col-span-1 w-full rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-3 text-white"
+        />
+
+        <select
+          value={simFilter}
+          onChange={(e) => setSimFilter(e.target.value)}
+          className="w-full rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-3 text-white"
+        >
+          <option>Alle</option>
+          <option>MSFS 2020</option>
+          <option>MSFS 2024</option>
+          <option>X-Plane</option>
+        </select>
+
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="w-full rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-3 text-white"
+        >
+          <option>Alle</option>
+          <option>Aircraft</option>
+          <option>Airports</option>
+          <option>Liveries</option>
+          <option>Scenery</option>
+          <option>Utilities</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <p className="text-zinc-400">Lade Addons...</p>
+      ) : filteredAddons.length === 0 ? (
+        <p className="text-zinc-400">Keine passenden Addons gefunden.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {addons.map((addon: Addon) => (
+          {filteredAddons.map((addon) => (
             <div
               key={addon.id}
               className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
@@ -68,14 +136,7 @@ export default async function AddonsPage() {
                   Details
                 </Link>
 
-                <a
-                  href={addon.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block rounded-lg bg-blue-600 px-4 py-2 hover:bg-blue-700"
-                >
-                  Download
-                </a>
+                <DownloadButton addonId={addon.id} fileUrl={addon.file_url} />
               </div>
             </div>
           ))}
