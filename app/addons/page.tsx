@@ -1,6 +1,5 @@
 "use client";
 
-import { authorToSlug } from "@/lib/creator";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +10,7 @@ type Addon = {
   title: string;
   description: string;
   author: string;
+  author_name?: string;
   file_url: string;
   version: string;
   downloads: number;
@@ -50,13 +50,13 @@ export default function AddonsPage() {
       const matchesSearch =
         addon.title.toLowerCase().includes(search.toLowerCase()) ||
         addon.description.toLowerCase().includes(search.toLowerCase()) ||
-        addon.author.toLowerCase().includes(search.toLowerCase());
+        (addon.author_name ?? addon.author)
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-      const matchesSim =
-        simFilter === "Alle" ? true : addon.sim === simFilter;
-
+      const matchesSim = simFilter === "Alle" || addon.sim === simFilter;
       const matchesCategory =
-        categoryFilter === "Alle" ? true : addon.category === categoryFilter;
+        categoryFilter === "Alle" || addon.category === categoryFilter;
 
       return matchesSearch && matchesSim && matchesCategory;
     });
@@ -124,7 +124,15 @@ export default function AddonsPage() {
               <div className="text-sm text-zinc-500 mb-4 space-y-1">
                 <p>Simulator: {addon.sim}</p>
                 <p>Kategorie: {addon.category}</p>
-                <p>Autor: {addon.author}</p>
+                <p>
+                  Autor:{" "}
+                  <Link
+                    href={`/creator/${addon.author_name ?? addon.author}`}
+                    className="text-blue-400 hover:text-blue-300"
+                  >
+                    {addon.author_name ?? addon.author}
+                  </Link>
+                </p>
                 <p>Version: {addon.version}</p>
                 <p>Downloads: {addon.downloads}</p>
               </div>

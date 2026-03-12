@@ -9,6 +9,7 @@ type Addon = {
   title: string;
   description: string;
   author: string;
+  author_name?: string;
   file_url: string;
   version: string;
   downloads: number;
@@ -34,7 +35,7 @@ export default async function CreatorPage({
   }
 
   const creatorAddons = (addons as Addon[]).filter(
-    (addon) => authorToSlug(addon.author) === slug
+    (addon) => addon.author_name === slug || authorToSlug(addon.author) === slug
   );
 
   if (creatorAddons.length === 0) {

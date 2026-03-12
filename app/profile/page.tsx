@@ -5,7 +5,14 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type UserLike = {
+  id: string;
   email?: string;
+};
+
+type Profile = {
+  id: string;
+  email: string;
+  username: string;
 };
 
 type Addon = {
@@ -20,25 +27,46 @@ type Addon = {
 
 export default function ProfilePage() {
   const [user, setUser] = useState<UserLike | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [addons, setAddons] = useState<Addon[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadProfile = async () => {
       const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user ?? null;
-      setUser(currentUser);
+      const currentUser = userData.user;
 
-      if (currentUser?.email) {
-        const { data: addonData, error } = await supabase
-          .from("addons")
-          .select("*")
-          .eq("author", currentUser.email)
-          .order("created_at", { ascending: false });
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
 
-        if (!error && addonData) {
-          setAddons(addonData as Addon[]);
-        }
+      setUser({
+        id: currentUser.id,
+        email: currentUser.email ?? "",
+      });
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (!profileData) {
+        window.location.href = "/setup-profile";
+        return;
+      }
+
+      setProfile(profileData as Profile);
+
+      const { data: addonData, error } = await supabase
+        .from("addons")
+        .select("*")
+        .eq("author_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && addonData) {
+        setAddons(addonData as Addon[]);
       }
 
       setLoading(false);
@@ -72,9 +100,20 @@ export default function ProfilePage() {
       <div className="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <p className="text-zinc-400 mb-2">Eingeloggt als</p>
         <p className="text-xl font-semibold">{user.email}</p>
-        <p className="text-zinc-500 mt-3">
-          Hochgeladene Addons: {addons.length}
-        </p>
+
+        <p className="text-zinc-400 mt-4 mb-1">Öffentlicher Benutzername</p>
+        <p className="text-lg font-semibold">{profile?.username}</p>
+
+        <p className="text-zinc-500 mt-3">Hochgeladene Addons: {addons.length}</p>
+
+        {profile?.username && (
+          <Link
+            href={`/creator/${profile.username}`}
+            className="inline-block mt-4 rounded bg-zinc-700 px-4 py-2 hover:bg-zinc-600"
+          >
+            Meine Creator-Seite
+          </Link>
+        )}
       </div>
 
       <h2 className="text-2xl font-bold mb-6">Meine Addons</h2>

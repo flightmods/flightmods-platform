@@ -14,6 +14,7 @@ type Addon = {
   created_at: string;
   sim: string;
   category: string;
+  author_name?: string;
 };
 
 export default async function AddonDetailPage({
@@ -46,10 +47,10 @@ export default async function AddonDetailPage({
           <p>
   Autor:{" "}
   <Link
-    href={`/creator/${authorToSlug(typedAddon.author)}`}
+    href={`/creator/${typedAddon.author_name ?? typedAddon.author}`}
     className="text-blue-400 hover:text-blue-300"
   >
-    {typedAddon.author}
+    {typedAddon.author_name ?? typedAddon.author}
   </Link>
 </p>
           <p>Version: {typedAddon.version}</p>
