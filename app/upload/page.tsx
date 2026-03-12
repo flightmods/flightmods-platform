@@ -90,6 +90,28 @@ export default function UploadPage() {
         data: { publicUrl },
       } = supabase.storage.from("addons").getPublicUrl(safeFileName);
 
+      let imageUrl: string | null = null;
+
+if (image) {
+  const imageName = `${Date.now()}_${image.name.replace(/\s+/g, "_")}`;
+
+  const { error: imageUploadError } = await supabase.storage
+    .from("addon-images")
+    .upload(imageName, image);
+
+  if (imageUploadError) {
+    alert(`Bild-Upload fehlgeschlagen: ${imageUploadError.message}`);
+    setUploading(false);
+    return;
+  }
+
+  const {
+    data: { publicUrl: imagePublicUrl },
+  } = supabase.storage.from("addon-images").getPublicUrl(imageName);
+
+  imageUrl = imagePublicUrl;
+}
+
       const { error: insertError } = await supabase.from("addons").insert([
         {
           title: title.trim(),
@@ -97,6 +119,7 @@ export default function UploadPage() {
           sim,
           category,
           file_url: publicUrl,
+          image_url: imageUrl,
           author: profileData.username,
           author_id: user.id,
           author_name: profileData.username,

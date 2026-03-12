@@ -15,6 +15,7 @@ type Addon = {
   sim: string;
   category: string;
   author_name?: string;
+  image_url?: string;
 };
 
 export default async function AddonDetailPage({
