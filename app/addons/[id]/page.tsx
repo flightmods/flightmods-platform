@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { authorToSlug } from "@/lib/creator";
 import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 
@@ -41,7 +43,15 @@ export default async function AddonDetailPage({
         <div className="text-sm text-zinc-400 mb-6 space-y-1">
           <p>Simulator: {typedAddon.sim}</p>
           <p>Kategorie: {typedAddon.category}</p>
-          <p>Autor: {typedAddon.author}</p>
+          <p>
+  Autor:{" "}
+  <Link
+    href={`/creator/${authorToSlug(typedAddon.author)}`}
+    className="text-blue-400 hover:text-blue-300"
+  >
+    {typedAddon.author}
+  </Link>
+</p>
           <p>Version: {typedAddon.version}</p>
           <p>Downloads: {typedAddon.downloads}</p>
         </div>

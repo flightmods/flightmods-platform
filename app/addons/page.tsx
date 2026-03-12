@@ -1,5 +1,6 @@
 "use client";
 
+import { authorToSlug } from "@/lib/creator";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
