@@ -17,6 +17,7 @@ type Addon = {
   created_at: string;
   sim: string;
   category: string;
+  image_url?: string;
 };
 
 export default function AddonsPage() {
@@ -111,6 +112,13 @@ export default function AddonsPage() {
               key={addon.id}
               className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
             >
+              {addon.image_url && (
+  <img
+    src={addon.image_url}
+    alt={addon.title}
+    className="w-full h-40 object-cover rounded-lg mb-4"
+  />
+)}
               <Link href={`/addons/${addon.id}`}>
                 <h2 className="text-2xl font-semibold mb-2 hover:text-blue-400">
                   {addon.title}

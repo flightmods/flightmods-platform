@@ -42,6 +42,14 @@ export default async function AddonDetailPage({
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8">
         <h1 className="text-4xl font-bold mb-4">{typedAddon.title}</h1>
 
+{typedAddon.image_url && (
+  <img
+    src={typedAddon.image_url}
+    alt={typedAddon.title}
+    className="w-full max-h-[400px] object-cover rounded-xl mb-6"
+  />
+)}
+
         <div className="text-sm text-zinc-400 mb-6 space-y-1">
           <p>Simulator: {typedAddon.sim}</p>
           <p>Kategorie: {typedAddon.category}</p>
