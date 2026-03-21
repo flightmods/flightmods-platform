@@ -10,6 +10,8 @@ type Addon = {
   description: string;
   image_url?: string | null;
   downloads: number;
+  author?: string;
+  author_name?: string;
 };
 
 export default function Home() {
@@ -20,163 +22,214 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const { data: featuredRows, error: featuredError } = await supabase
-          .from("addons")
-          .select("*")
-          .order("downloads", { ascending: false })
-          .limit(1);
+      const { data: featuredRows } = await supabase
+        .from("addons")
+        .select("*")
+        .order("downloads", { ascending: false })
+        .limit(1);
 
-        const { data: latestData, error: latestError } = await supabase
-          .from("addons")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(6);
+      const { data: latestData } = await supabase
+        .from("addons")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-        const { data: popularData, error: popularError } = await supabase
-          .from("addons")
-          .select("*")
-          .order("downloads", { ascending: false })
-          .limit(6);
+      const { data: popularData } = await supabase
+        .from("addons")
+        .select("*")
+        .order("downloads", { ascending: false })
+        .limit(6);
 
-        if (featuredError) console.error("Featured error:", featuredError.message);
-        if (latestError) console.error("Latest error:", latestError.message);
-        if (popularError) console.error("Popular error:", popularError.message);
-
-        setFeatured(featuredRows?.[0] ?? null);
-        setLatest((latestData as Addon[]) || []);
-        setPopular((popularData as Addon[]) || []);
-      } catch (error) {
-        console.error("Homepage fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
+      setFeatured(featuredRows?.[0] ?? null);
+      setLatest((latestData as Addon[]) || []);
+      setPopular((popularData as Addon[]) || []);
+      setLoading(false);
     };
 
     fetchData();
   }, []);
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12">
-      {featured && (
-        <section className="mb-16">
-          <div className="relative rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900">
-            {featured.image_url && (
-              <img
-                src={featured.image_url}
-                alt={featured.title}
-                className="w-full h-[300px] object-cover opacity-60"
-              />
-            )}
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+      
+      {/* Glow Background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
+        <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
+        <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
+      </div>
 
-            <div className="absolute inset-0 flex flex-col justify-center p-8">
-              <h2 className="text-3xl font-bold mb-2">⭐ Featured Addon</h2>
-              <h3 className="text-2xl mb-2">{featured.title}</h3>
-              <p className="text-zinc-300 mb-4 max-w-xl line-clamp-3">
-                {featured.description}
-              </p>
-              <Link
-                href={`/addons/${featured.id}`}
-                className="bg-blue-600 px-6 py-3 rounded-lg w-fit hover:bg-blue-700"
-              >
-                Jetzt ansehen
-              </Link>
+      {/* Grid Overlay */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      <div className="max-w-6xl mx-auto px-6 py-12">
+
+        {/* Featured Addon */}
+        {featured && (
+          <section className="mb-16">
+            <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/60 backdrop-blur">
+              
+              {featured.image_url && (
+                <img
+                  src={featured.image_url}
+                  alt={featured.title}
+                  className="w-full h-[320px] object-cover"
+                />
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+
+              <div className="absolute inset-0 flex flex-col justify-center p-10">
+                <p className="text-blue-400 text-sm mb-2">⭐ Featured Addon</p>
+
+                <h2 className="text-3xl md:text-5xl font-bold mb-3 max-w-2xl">
+                  {featured.title}
+                </h2>
+
+                <p className="text-zinc-200 max-w-3xl mb-6 text-lg leading-7">
+  {featured.description.length > 140
+    ? featured.description.substring(0, 140).split(" ").slice(0, -1).join(" ") + "..."
+    : featured.description}
+</p>
+
+                <div className="flex gap-4 items-center">
+                  <Link
+                    href={`/addons/${featured.id}`}
+                    className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                  >
+                    Look here
+                  </Link>
+
+                  <span className="text-sm text-zinc-400">
+                    {featured.downloads} Downloads
+                  </span>
+                </div>
+              </div>
             </div>
+          </section>
+        )}
+
+        {/* Hero */}
+        <section className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4">
+            FlightMods
+          </h1>
+
+          <p className="text-zinc-400 mb-8">
+            Your Platform for Flight Simulator Addons
+          </p>
+
+          <div className="flex justify-center gap-4">
+            <Link
+              href="/addons"
+              className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+            >
+              Discover Addons
+            </Link>
+
+            <Link
+              href="/upload"
+              className="bg-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-700 transition"
+            >
+              Addon upload
+            </Link>
           </div>
         </section>
-      )}
 
-      <section className="text-center mb-16">
-        <h1 className="text-5xl font-bold mb-4">FlightMods</h1>
-        <p className="text-zinc-400 mb-6">
-          Deine Plattform für Flight Simulator Addons
-        </p>
+        {/* Latest Addons */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-semibold mb-6">
+            Newest Addons
+          </h2>
 
-        <div className="flex justify-center gap-4">
-          <Link
-            href="/addons"
-            className="bg-blue-600 px-6 py-3 rounded-lg hover:bg-blue-700"
-          >
-            Addons entdecken
-          </Link>
+          {loading ? (
+            <p className="text-zinc-400">Lade...</p>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {latest.map((addon) => (
+                <Link
+                  key={addon.id}
+                  href={`/addons/${addon.id}`}
+                  className="group border border-zinc-800 rounded-2xl p-4 bg-zinc-900/60 backdrop-blur hover:bg-zinc-800/70 transition"
+                >
+                  {addon.image_url && (
+                    <img
+                      src={addon.image_url}
+                      alt={addon.title}
+                      className="w-full h-44 object-cover rounded-xl mb-4 group-hover:scale-[1.01] transition"
+                    />
+                  )}
 
-          <Link
-            href="/upload"
-            className="bg-zinc-700 px-6 py-3 rounded-lg hover:bg-zinc-600"
-          >
-            Addon hochladen
-          </Link>
-        </div>
-      </section>
+                  <h3 className="text-lg font-semibold group-hover:text-blue-400">
+                    {addon.title}
+                  </h3>
 
-      <section className="mb-16">
-        <h2 className="text-2xl font-semibold mb-6">Neueste Addons</h2>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    von {addon.author_name ?? addon.author ?? "Unbekannt"}
+                  </p>
 
-        {loading ? (
-          <p className="text-zinc-400">Lade Inhalte...</p>
-        ) : latest.length === 0 ? (
-          <p className="text-zinc-500">Noch keine Addons vorhanden.</p>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-6">
-            {latest.map((addon) => (
-              <Link
-                key={addon.id}
-                href={`/addons/${addon.id}`}
-                className="border border-zinc-800 rounded-xl p-4 hover:bg-zinc-900"
-              >
-                {addon.image_url && (
-                  <img
-                    src={addon.image_url}
-                    alt={addon.title}
-                    className="w-full h-40 object-cover rounded-lg mb-4"
-                  />
-                )}
+                  <p className="text-sm text-zinc-400 mt-3 line-clamp-2">
+                    {addon.description}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
-                <h3 className="text-lg font-semibold">{addon.title}</h3>
-                <p className="text-sm text-zinc-400 line-clamp-2">
-                  {addon.description}
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+        {/* Trending */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-6">
+            🔥 Trending Addons
+          </h2>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-6">Beliebte Addons</h2>
+          {loading ? (
+            <p className="text-zinc-400">Lade...</p>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {popular.map((addon) => (
+                <Link
+                  key={addon.id}
+                  href={`/addons/${addon.id}`}
+                  className="group border border-zinc-800 rounded-2xl p-4 bg-zinc-900/60 backdrop-blur hover:bg-zinc-800/70 transition"
+                >
+                  {addon.image_url && (
+                    <img
+                      src={addon.image_url}
+                      alt={addon.title}
+                      className="w-full h-44 object-cover rounded-xl mb-4 group-hover:scale-[1.01] transition"
+                    />
+                  )}
 
-        {loading ? (
-          <p className="text-zinc-400">Lade Inhalte...</p>
-        ) : popular.length === 0 ? (
-          <p className="text-zinc-500">Noch keine beliebten Addons vorhanden.</p>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-6">
-            {popular.map((addon) => (
-              <Link
-                key={addon.id}
-                href={`/addons/${addon.id}`}
-                className="border border-zinc-800 rounded-xl p-4 hover:bg-zinc-900"
-              >
-                {addon.image_url && (
-                  <img
-                    src={addon.image_url}
-                    alt={addon.title}
-                    className="w-full h-40 object-cover rounded-lg mb-4"
-                  />
-                )}
+                  <h3 className="text-lg font-semibold group-hover:text-blue-400">
+                    {addon.title}
+                  </h3>
 
-                <h3 className="text-lg font-semibold">{addon.title}</h3>
-                <p className="text-sm text-zinc-400 line-clamp-2">
-                  {addon.description}
-                </p>
-                <p className="text-xs text-zinc-500 mt-2">
-                  {addon.downloads} Downloads
-                </p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    von {addon.author_name ?? addon.author ?? "Unbekannt"}
+                  </p>
+
+                  <p className="text-sm text-zinc-400 mt-3 line-clamp-2">
+                    {addon.description}
+                  </p>
+
+                  <p className="text-xs text-zinc-500 mt-3">
+                    {addon.downloads} Downloads
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </div>
     </main>
   );
 }

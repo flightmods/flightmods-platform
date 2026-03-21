@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -37,32 +38,57 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center p-4 bg-zinc-900 border-b border-zinc-800">
-      <div className="font-bold text-lg">
-        <Link href="/">FlightMods</Link>
-      </div>
+    <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/logo.png"
+            alt="FlightMods"
+            width={170}
+            height={52}
+            priority
+            className="h-auto w-[170px] object-contain"
+          />
+        </Link>
 
-      <div className="flex gap-6 text-sm items-center">
-        <Link href="/addons">Addons</Link>
-        <Link href="/upload">Upload</Link>
+        <div className="flex items-center gap-6 text-sm">
+          <Link href="/addons" className="hover:text-blue-400 transition">
+            Addons
+          </Link>
 
-        {loading ? null : user ? (
-          <>
-            <Link href="/profile">Profil</Link>
-            <span className="text-zinc-400 hidden md:inline">{user.email}</span>
-            <button
-              onClick={handleLogout}
-              className="rounded bg-zinc-700 px-3 py-1 hover:bg-zinc-600"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link href="/login">Login</Link>
-            <Link href="/register">Register</Link>
-          </>
-        )}
+          <Link href="/upload" className="hover:text-blue-400 transition">
+            Upload
+          </Link>
+
+          {loading ? null : user ? (
+            <>
+              <Link href="/profile" className="hover:text-blue-400 transition">
+                Profil
+              </Link>
+
+              <span className="hidden text-zinc-400 md:inline">
+                {user.email}
+              </span>
+
+              <button
+                onClick={handleLogout}
+                className="rounded-lg bg-zinc-800 px-4 py-2 transition hover:bg-zinc-700"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="hover:text-blue-400 transition">
+                Login
+              </Link>
+
+              <Link href="/register" className="hover:text-blue-400 transition">
+                Register
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );

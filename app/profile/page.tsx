@@ -25,6 +25,7 @@ type Addon = {
   category: string;
   version: string;
   downloads: number;
+  image_url?: string;
 };
 
 export default function ProfilePage() {
@@ -136,118 +137,245 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold mb-6">Profil</h1>
-        <p className="text-zinc-400">Lade Profil...</p>
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <p className="text-zinc-400">Lade Profil...</p>
+        </div>
       </main>
     );
   }
 
   if (!user || !profile) {
     return (
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold mb-6">Profil</h1>
-        <p className="text-red-400">Du bist nicht eingeloggt.</p>
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
+            <h1 className="mb-4 text-4xl font-bold">Profil</h1>
+            <p className="text-red-400">Du bist nicht eingeloggt.</p>
+          </div>
+        </div>
       </main>
     );
   }
 
+  const totalDownloads = addons.reduce(
+    (sum, addon) => sum + (addon.downloads ?? 0),
+    0
+  );
+
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold mb-4">Profil</h1>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+      {/* Glow Background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
+        <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
+        <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
+      </div>
 
-      <div className="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="shrink-0">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.username}
-                className="w-28 h-28 rounded-full object-cover border border-zinc-700"
-              />
-            ) : (
-              <div className="w-28 h-28 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-3xl">
-                {profile.username.charAt(0).toUpperCase()}
+      {/* Grid Overlay */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        {/* Header */}
+        <section className="mb-10">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+            Creator Profile
+          </p>
+          <h1 className="mb-3 text-5xl font-bold md:text-6xl">Mein Profil</h1>
+          <p className="max-w-2xl text-zinc-400">
+            Verwalte deinen öffentlichen Creator-Auftritt, passe Bio und Avatar an
+            und behalte deine Addons im Blick.
+          </p>
+        </section>
+
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          {/* Left */}
+          <div className="space-y-8">
+            {/* Main Profile Card */}
+            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center">
+                <div className="shrink-0">
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.username}
+                      className="h-28 w-28 rounded-full border border-zinc-700 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-28 w-28 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 text-3xl font-bold">
+                      {profile.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1">
+                  <p className="mb-1 text-sm text-zinc-400">Öffentlicher Benutzername</p>
+                  <h2 className="text-3xl font-bold">{profile.username}</h2>
+
+                  <p className="mt-3 text-sm text-zinc-400">Eingeloggt als</p>
+                  <p className="text-zinc-200">{user.email}</p>
+
+                  {profile.bio ? (
+                    <p className="mt-4 max-w-2xl leading-7 text-zinc-300">
+                      {profile.bio}
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-zinc-500">
+                      Noch keine Bio hinterlegt.
+                    </p>
+                  )}
+                </div>
               </div>
-            )}
+            </section>
+
+            {/* Edit Profile */}
+            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <h2 className="mb-5 text-2xl font-bold">Profil bearbeiten</h2>
+
+              <label className="mb-2 block text-sm text-zinc-400">Bio</label>
+              <textarea
+                className="mb-5 min-h-[140px] w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 text-white outline-none placeholder:text-zinc-500 focus:border-blue-500"
+                placeholder="Erzähl etwas über dich als Creator..."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+              />
+
+              <label className="mb-2 block text-sm text-zinc-400">Avatar</label>
+              <input
+                type="file"
+                accept="image/*"
+                className="mb-6 block w-full rounded-xl border border-zinc-700 bg-black/20 p-3 text-sm text-zinc-300"
+                onChange={(e) => setAvatar(e.target.files?.[0] || null)}
+              />
+
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="rounded-xl bg-blue-600 px-6 py-3 font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? "Speichere..." : "Profil speichern"}
+              </button>
+            </section>
+
+            {/* My Addons */}
+            <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Meine Addons</h2>
+                <Link
+                  href={`/creator/${profile.username}`}
+                  className="rounded-xl bg-zinc-800 px-4 py-2 text-sm transition hover:bg-zinc-700"
+                >
+                  Öffentliche Creator-Seite
+                </Link>
+              </div>
+
+              {addons.length === 0 ? (
+                <p className="text-zinc-400">Du hast noch keine Addons hochgeladen.</p>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {addons.map((addon) => (
+                    <div
+                      key={addon.id}
+                      className="rounded-2xl border border-zinc-800 bg-black/20 p-4 transition hover:bg-zinc-800/40"
+                    >
+                      {addon.image_url && (
+                        <img
+                          src={addon.image_url}
+                          alt={addon.title}
+                          className="mb-4 h-40 w-full rounded-xl object-cover"
+                        />
+                      )}
+
+                      <Link href={`/addons/${addon.id}`}>
+                        <h3 className="mb-2 text-xl font-semibold hover:text-blue-400">
+                          {addon.title}
+                        </h3>
+                      </Link>
+
+                      <p className="mb-4 text-sm leading-7 text-zinc-400">
+                        {addon.description.length > 110
+                          ? addon.description
+                              .substring(0, 110)
+                              .split(" ")
+                              .slice(0, -1)
+                              .join(" ") + "..."
+                          : addon.description}
+                      </p>
+
+                      <div className="mb-3 flex flex-wrap gap-2">
+                        <span className="rounded-full border border-blue-400/30 bg-blue-500/15 px-3 py-1 text-xs font-medium text-blue-300">
+                          {addon.sim}
+                        </span>
+                        <span className="rounded-full border border-zinc-600 bg-zinc-800/70 px-3 py-1 text-xs font-medium text-zinc-200">
+                          {addon.category}
+                        </span>
+                        <span className="rounded-full border border-zinc-600 bg-zinc-800/70 px-3 py-1 text-xs font-medium text-zinc-200">
+                          v{addon.version}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-zinc-500">
+                        {addon.downloads} Downloads
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
 
-          <div className="flex-1">
-            <p className="text-zinc-400 mb-2">Eingeloggt als</p>
-            <p className="text-xl font-semibold">{user.email}</p>
+          {/* Right Sidebar */}
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <h2 className="mb-5 text-2xl font-bold">Statistiken</h2>
 
-            <p className="text-zinc-400 mt-4 mb-1">Öffentlicher Benutzername</p>
-            <p className="text-lg font-semibold">{profile.username}</p>
+              <div className="space-y-3 text-sm text-zinc-300">
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-zinc-400">Addons</span>
+                  <span>{addons.length}</span>
+                </div>
 
-            <p className="text-zinc-500 mt-3">Hochgeladene Addons: {addons.length}</p>
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-zinc-400">Gesamtdownloads</span>
+                  <span>{totalDownloads}</span>
+                </div>
 
-            <Link
-              href={`/creator/${profile.username}`}
-              className="inline-block mt-4 rounded bg-zinc-700 px-4 py-2 hover:bg-zinc-600"
-            >
-              Meine Creator-Seite
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-10 rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
-        <h2 className="text-2xl font-bold mb-4">Profil bearbeiten</h2>
-
-        <textarea
-          className="w-full mb-4 p-3 bg-zinc-800 rounded min-h-[120px]"
-          placeholder="Kurze Bio über dich als Creator"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-        />
-
-        <input
-          type="file"
-          accept="image/*"
-          className="mb-4 block w-full"
-          onChange={(e) => setAvatar(e.target.files?.[0] || null)}
-        />
-
-        <button
-          onClick={handleSaveProfile}
-          disabled={saving}
-          className="bg-blue-600 px-6 py-3 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {saving ? "Speichere..." : "Profil speichern"}
-        </button>
-      </div>
-
-      <h2 className="text-2xl font-bold mb-6">Meine Addons</h2>
-
-      {addons.length === 0 ? (
-        <p className="text-zinc-400">Du hast noch keine Addons hochgeladen.</p>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2">
-          {addons.map((addon) => (
-            <div
-              key={addon.id}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5"
-            >
-              <Link href={`/addons/${addon.id}`}>
-                <h3 className="text-xl font-semibold mb-2 hover:text-blue-400">
-                  {addon.title}
-                </h3>
-              </Link>
-
-              <p className="text-zinc-400 mb-4 line-clamp-3">
-                {addon.description}
-              </p>
-
-              <div className="text-sm text-zinc-500 space-y-1">
-                <p>Simulator: {addon.sim}</p>
-                <p>Kategorie: {addon.category}</p>
-                <p>Version: {addon.version}</p>
-                <p>Downloads: {addon.downloads}</p>
+                <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                  <span className="text-zinc-400">Username</span>
+                  <span>{profile.username}</span>
+                </div>
               </div>
             </div>
-          ))}
+
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
+              <h2 className="mb-4 text-xl font-bold">Schnellzugriff</h2>
+
+              <div className="flex flex-col gap-3">
+                <Link
+                  href="/upload"
+                  className="rounded-xl bg-blue-600 px-4 py-3 text-center font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                >
+                  Neues Addon hochladen
+                </Link>
+
+                <Link
+                  href={`/creator/${profile.username}`}
+                  className="rounded-xl bg-zinc-800 px-4 py-3 text-center font-medium transition hover:bg-zinc-700"
+                >
+                  Öffentliche Creator-Seite
+                </Link>
+              </div>
+            </div>
+          </aside>
         </div>
-      )}
+      </div>
     </main>
   );
 }
