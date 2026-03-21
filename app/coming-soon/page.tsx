@@ -1,3 +1,4 @@
+<p className="text-red-400 font-bold text-2xl">NEUE VERSION LIVE TEST</p>
 import Link from "next/link";
 
 export default function ComingSoonPage() {
