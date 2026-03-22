@@ -26,7 +26,31 @@ type Addon = {
   version: string;
   downloads: number;
   image_url?: string;
+  status: string;
 };
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "approved":
+      return (
+        <span className="rounded-full border border-green-400/30 bg-green-500/15 px-3 py-1 text-xs font-medium text-green-300">
+          Approved
+        </span>
+      );
+    case "rejected":
+      return (
+        <span className="rounded-full border border-red-400/30 bg-red-500/15 px-3 py-1 text-xs font-medium text-red-300">
+          Rejected
+        </span>
+      );
+    default:
+      return (
+        <span className="rounded-full border border-yellow-400/30 bg-yellow-500/15 px-3 py-1 text-xs font-medium text-yellow-300">
+          Pending Review
+        </span>
+      );
+  }
+}
 
 export default function ProfilePage() {
   const [user, setUser] = useState<UserLike | null>(null);
@@ -188,10 +212,10 @@ export default function ProfilePage() {
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
             Creator Profile
           </p>
-          <h1 className="mb-3 text-5xl font-bold md:text-6xl">Mein Profil</h1>
+          <h1 className="mb-3 text-5xl font-bold md:text-6xl">Profile</h1>
           <p className="max-w-2xl text-zinc-400">
-            Verwalte deinen öffentlichen Creator-Auftritt, passe Bio und Avatar an
-            und behalte deine Addons im Blick.
+            Manage your public creator profile, customize your bio and avatar
+            and keep track of your add-ons.
           </p>
         </section>
 
@@ -293,11 +317,15 @@ export default function ProfilePage() {
                         />
                       )}
 
-                      <Link href={`/addons/${addon.id}`}>
-                        <h3 className="mb-2 text-xl font-semibold hover:text-blue-400">
-                          {addon.title}
-                        </h3>
-                      </Link>
+                      <div className="mb-3 flex items-start justify-between gap-3">
+  <Link href={`/addons/${addon.id}`}>
+    <h3 className="text-xl font-semibold hover:text-blue-400">
+      {addon.title}
+    </h3>
+  </Link>
+
+  {getStatusBadge(addon.status)}
+</div>
 
                       <p className="mb-4 text-sm leading-7 text-zinc-400">
                         {addon.description.length > 110
