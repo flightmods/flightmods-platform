@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+const ADMIN_EMAIL = "christoph_adam@outlook.de";
+
 type UserLike = {
   id: string;
   email?: string;
@@ -386,19 +388,28 @@ export default function ProfilePage() {
               <h2 className="mb-4 text-xl font-bold">Schnellzugriff</h2>
 
               <div className="flex flex-col gap-3">
-                <Link
-                  href="/upload"
-                  className="rounded-xl bg-blue-600 px-4 py-3 text-center font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-                >
-                  Neues Addon hochladen
-                </Link>
+  <Link
+    href="/upload"
+    className="rounded-xl bg-blue-600 px-4 py-3 text-center font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+  >
+    Upload New Addon
+  </Link>
 
-                <Link
-                  href={`/creator/${profile.username}`}
-                  className="rounded-xl bg-zinc-800 px-4 py-3 text-center font-medium transition hover:bg-zinc-700"
-                >
-                  Öffentliche Creator-Seite
-                </Link>
+  <Link
+    href={`/creator/${profile.username}`}
+    className="rounded-xl bg-zinc-800 px-4 py-3 text-center font-medium transition hover:bg-zinc-700"
+  >
+    Public Creator Page
+  </Link>
+
+  {user.email === ADMIN_EMAIL && (
+    <Link
+      href="/admin"
+      className="rounded-xl bg-emerald-600 px-4 py-3 text-center font-medium transition hover:bg-emerald-700"
+    >
+      Open Admin Panel
+    </Link>
+  )}
               </div>
             </div>
           </aside>

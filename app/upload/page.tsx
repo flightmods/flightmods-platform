@@ -46,6 +46,7 @@ export default function UploadPage() {
   }, []);
 
   const handleUpload = async () => {
+    console.log("1 - upload started");
     if (!user) {
       alert("You must be logged in to upload an addon.");
       return;
@@ -80,16 +81,17 @@ export default function UploadPage() {
         console.error("Profile error:", profileError);
         alert(`Failed to load profile: ${profileError.message}`);
         return;
+        console.log("2 - user ok", user);
       }
-
+console.log("3 - loading profile");
       if (!profileData) {
         alert("Please complete your profile before uploading.");
         window.location.href = "/setup-profile";
         return;
       }
-
+console.log("4 - profile result", profileData, profileError);
       const profile = profileData as Profile;
-
+console.log("5 - uploading addon file");
       // Upload addon file
       const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
 
@@ -102,11 +104,11 @@ export default function UploadPage() {
         alert(`Addon file upload failed: ${fileUploadError.message}`);
         return;
       }
-
+console.log("6 - addon file upload result", fileUploadError);
       const {
         data: { publicUrl: fileUrl },
       } = supabase.storage.from("addons").getPublicUrl(safeFileName);
-
+console.log("7 - file url ready", fileUrl);
       // Upload image (optional)
       let imageUrl: string | null = null;
 
@@ -146,6 +148,8 @@ export default function UploadPage() {
         status: "pending",
       };
 
+      console.log("8 - inserting addon row", payload);
+      
       const { error: insertError } = await supabase
         .from("addons")
         .insert([payload]);
@@ -155,7 +159,7 @@ export default function UploadPage() {
         alert(`Database insert failed: ${insertError.message}`);
         return;
       }
-
+console.log("9 - insert result", insertError);
       alert("Addon uploaded successfully and is now pending review.");
 
       setTitle("");
@@ -183,9 +187,11 @@ export default function UploadPage() {
         imageInput.value = "";
       }
     } catch (error) {
+      console.error("10 - unexpected error", error);
       console.error("Unexpected upload error:", error);
       alert("An unexpected error occurred during upload.");
     } finally {
+      console.log("11 - finally reached");
       setUploading(false);
     }
   };
