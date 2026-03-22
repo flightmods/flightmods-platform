@@ -23,7 +23,7 @@ export default function RegisterPage() {
       return;
     }
 
-    alert("Account erstellt. Du kannst dich jetzt einloggen.");
+    alert("Account created. You can now log in.");
     window.location.href = "/login";
   }
 
@@ -55,32 +55,32 @@ export default function RegisterPage() {
             </p>
             <h1 className="mb-4 text-5xl font-bold md:text-6xl">Register</h1>
             <p className="max-w-xl text-zinc-400 leading-8">
-              Erstelle deinen FlightMods Account und starte als Creator mit
-              eigenen Uploads, Profil und Community-Präsenz.
+              Create your FlightMods account and start as a creator with
+              your own uploads, profile and community presence.
             </p>
           </div>
 
           {/* Right */}
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
-            <h2 className="mb-6 text-2xl font-bold">Neuen Account erstellen</h2>
+            <h2 className="mb-6 text-2xl font-bold">Create new account</h2>
 
             <div className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm text-zinc-400">E-Mail</label>
                 <input
                   className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
-                  placeholder="deine@email.de"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-zinc-400">Passwort</label>
+                <label className="mb-2 block text-sm text-zinc-400">Password</label>
                 <input
                   className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
                   type="password"
-                  placeholder="Sicheres Passwort"
+                  placeholder="Secure Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -91,14 +91,14 @@ export default function RegisterPage() {
                 disabled={loading}
                 className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-semibold shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? "Erstelle Account..." : "Registrieren"}
+                {loading ? "Creating account..." : "Register"}
               </button>
             </div>
 
             <p className="mt-6 text-sm text-zinc-400">
-              Bereits registriert?{" "}
+              Already registered?{" "}
               <Link href="/login" className="text-blue-400 hover:text-blue-300">
-                Zum Login
+                Log in
               </Link>
             </p>
           </div>

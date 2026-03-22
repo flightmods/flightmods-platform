@@ -1,7 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+type UserLike = {
+  id: string;
+  email?: string;
+};
+
+type Profile = {
+  id: string;
+  username: string;
+};
 
 export default function UploadPage() {
   const [title, setTitle] = useState("");
@@ -9,85 +19,202 @@ export default function UploadPage() {
   const [sim, setSim] = useState("MSFS 2020");
   const [category, setCategory] = useState("Aircraft");
   const [version, setVersion] = useState("1.0");
+
   const [file, setFile] = useState<File | null>(null);
   const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<UserLike | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error("Failed to load user:", error.message);
+        setUser(null);
+      } else {
+        setUser(data.user ?? null);
+      }
+
+      setLoadingUser(false);
+    };
+
+    loadUser();
+  }, []);
 
   const handleUpload = async () => {
-    if (!file || !title || !description) {
-      alert("Bitte alle Pflichtfelder ausfüllen.");
-      return;
-    }
-
-    setLoading(true);
-
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
-
     if (!user) {
-      alert("Du bist nicht eingeloggt.");
-      setLoading(false);
+      alert("You must be logged in to upload an addon.");
       return;
     }
 
-    let fileUrl = "";
-    let imageUrl = "";
-
-    // Datei Upload
-    const fileName = `${Date.now()}_${file.name}`;
-    const { error: fileError } = await supabase.storage
-      .from("addons")
-      .upload(fileName, file);
-
-    if (fileError) {
-      alert(fileError.message);
-      setLoading(false);
+    if (!title.trim()) {
+      alert("Please enter an addon title.");
       return;
     }
 
-    fileUrl = supabase.storage.from("addons").getPublicUrl(fileName).data.publicUrl;
+    if (!description.trim()) {
+      alert("Please enter a description.");
+      return;
+    }
 
-    // Bild Upload
-    if (image) {
-      const imageName = `${Date.now()}_${image.name}`;
-      const { error: imageError } = await supabase.storage
-        .from("images")
-        .upload(imageName, image);
+    if (!file) {
+      alert("Please select an addon file.");
+      return;
+    }
 
-      if (!imageError) {
-        imageUrl = supabase.storage
-          .from("images")
-          .getPublicUrl(imageName).data.publicUrl;
+    setUploading(true);
+
+    try {
+      // Load creator profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, username")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        alert(`Failed to load profile: ${profileError.message}`);
+        return;
       }
+
+      if (!profileData) {
+        alert("Please complete your profile before uploading.");
+        window.location.href = "/setup-profile";
+        return;
+      }
+
+      const profile = profileData as Profile;
+
+      // Upload addon file
+      const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
+
+      const { error: fileUploadError } = await supabase.storage
+        .from("addons")
+        .upload(safeFileName, file);
+
+      if (fileUploadError) {
+        console.error("File upload error:", fileUploadError);
+        alert(`Addon file upload failed: ${fileUploadError.message}`);
+        return;
+      }
+
+      const {
+        data: { publicUrl: fileUrl },
+      } = supabase.storage.from("addons").getPublicUrl(safeFileName);
+
+      // Upload image (optional)
+      let imageUrl: string | null = null;
+
+      if (image) {
+        const safeImageName = `${Date.now()}_${image.name.replace(/\s+/g, "_")}`;
+
+        const { error: imageUploadError } = await supabase.storage
+          .from("addon-images")
+          .upload(safeImageName, image);
+
+        if (imageUploadError) {
+          console.error("Image upload error:", imageUploadError);
+          alert(`Image upload failed: ${imageUploadError.message}`);
+          return;
+        }
+
+        const {
+          data: { publicUrl: publicImageUrl },
+        } = supabase.storage.from("addon-images").getPublicUrl(safeImageName);
+
+        imageUrl = publicImageUrl;
+      }
+
+      // Insert addon row
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        sim,
+        category,
+        version: version.trim() || "1.0",
+        file_url: fileUrl,
+        image_url: imageUrl,
+        author: profile.username,
+        author_id: user.id,
+        author_name: profile.username,
+        downloads: 0,
+        status: "pending",
+      };
+
+      const { error: insertError } = await supabase
+        .from("addons")
+        .insert([payload]);
+
+      if (insertError) {
+        console.error("Insert error:", insertError);
+        alert(`Database insert failed: ${insertError.message}`);
+        return;
+      }
+
+      alert("Addon uploaded successfully and is now pending review.");
+
+      setTitle("");
+      setDescription("");
+      setSim("MSFS 2020");
+      setCategory("Aircraft");
+      setVersion("1.0");
+      setFile(null);
+      setImage(null);
+      setImagePreview(null);
+
+      const fileInput = document.getElementById(
+        "addon-file-input"
+      ) as HTMLInputElement | null;
+
+      if (fileInput) {
+        fileInput.value = "";
+      }
+
+      const imageInput = document.getElementById(
+        "addon-image-input"
+      ) as HTMLInputElement | null;
+
+      if (imageInput) {
+        imageInput.value = "";
+      }
+    } catch (error) {
+      console.error("Unexpected upload error:", error);
+      alert("An unexpected error occurred during upload.");
+    } finally {
+      setUploading(false);
     }
-
-    const { error: insertError } = await supabase.from("addons").insert({
-      title,
-      description,
-      sim,
-      category,
-      version,
-      file_url: fileUrl,
-      image_url: imageUrl,
-      downloads: 0,
-      author_id: user.id,
-      author: user.email,
-    });
-
-    if (insertError) {
-      alert(insertError.message);
-      setLoading(false);
-      return;
-    }
-
-    alert("Addon successfully uploaded!");
-    window.location.href = "/addons";
   };
+
+  if (loadingUser) {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <p className="text-zinc-400">Loading user...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
+            <h1 className="mb-4 text-4xl font-bold">Upload</h1>
+            <p className="text-red-400">You must be logged in to upload an addon.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
-      
       {/* Glow */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
@@ -105,95 +232,127 @@ export default function UploadPage() {
         }}
       />
 
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        
-        {/* Header */}
+      <div className="mx-auto max-w-3xl px-6 py-12">
         <div className="mb-10">
-          <p className="text-blue-300 uppercase text-sm tracking-widest mb-2">
+          <p className="mb-2 text-sm uppercase tracking-[0.2em] text-blue-300">
             Creator Upload
           </p>
-
-          <h1 className="text-5xl font-bold mb-3">
-            Upload new add-on
-          </h1>
-
+          <h1 className="mb-3 text-5xl font-bold">Upload a New Addon</h1>
           <p className="text-zinc-400">
-            Share your work with the community and reach Flight Simulator users worldwide.
+            Submit your addon for review before it becomes publicly available.
           </p>
         </div>
 
-        {/* Form */}
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 backdrop-blur p-6 space-y-6">
-
-          <input
-            placeholder="Title of the add-on"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-4 rounded-xl bg-black/30 border border-zinc-700 focus:border-blue-500 outline-none"
-          />
-
-          <textarea
-            placeholder="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-4 rounded-xl bg-black/30 border border-zinc-700 focus:border-blue-500 outline-none min-h-[140px]"
-          />
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <select
-              value={sim}
-              onChange={(e) => setSim(e.target.value)}
-              className="p-4 rounded-xl bg-black/30 border border-zinc-700"
-            >
-              <option>MSFS 2020</option>
-              <option>MSFS 2024</option>
-              <option>X-Plane</option>
-            </select>
-
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="p-4 rounded-xl bg-black/30 border border-zinc-700"
-            >
-              <option>Aircraft</option>
-              <option>Airports</option>
-              <option>Liveries</option>
-              <option>Scenery</option>
-              <option>Utilities</option>
-            </select>
-
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur space-y-6">
+          <div>
+            <label className="mb-2 block text-sm text-zinc-400">Addon Title</label>
             <input
-              placeholder="Version"
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              className="p-4 rounded-xl bg-black/30 border border-zinc-700"
+              className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
+              placeholder="Enter addon title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
           <div>
-            <p className="mb-2 text-sm text-zinc-400">Addon File</p>
+            <label className="mb-2 block text-sm text-zinc-400">Description</label>
+            <textarea
+              className="min-h-[160px] w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
+              placeholder="Describe your addon"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <label className="mb-2 block text-sm text-zinc-400">Simulator</label>
+              <select
+                className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none focus:border-blue-500"
+                value={sim}
+                onChange={(e) => setSim(e.target.value)}
+              >
+                <option>MSFS 2020</option>
+                <option>MSFS 2024</option>
+                <option>X-Plane</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm text-zinc-400">Category</label>
+              <select
+                className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none focus:border-blue-500"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option>Aircraft</option>
+                <option>Airports</option>
+                <option>Liveries</option>
+                <option>Scenery</option>
+                <option>Utilities</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm text-zinc-400">Version</label>
+              <input
+                className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
+                placeholder="1.0"
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm text-zinc-400">Addon File</label>
             <input
+              id="addon-file-input"
               type="file"
+              className="block w-full rounded-xl border border-zinc-700 bg-black/20 p-3 text-sm text-zinc-300"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="w-full text-sm"
             />
           </div>
 
           <div>
-            <p className="mb-2 text-sm text-zinc-400">Preview Image (optional)</p>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Cover Image (optional)
+            </label>
             <input
+              id="addon-image-input"
               type="file"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-              className="w-full text-sm"
+              accept="image/*"
+              className="block w-full rounded-xl border border-zinc-700 bg-black/20 p-3 text-sm text-zinc-300"
+              onChange={(e) => {
+                const selectedImage = e.target.files?.[0] || null;
+                setImage(selectedImage);
+
+                if (selectedImage) {
+                  setImagePreview(URL.createObjectURL(selectedImage));
+                } else {
+                  setImagePreview(null);
+                }
+              }}
             />
+
+            {imagePreview && (
+              <div className="mt-4">
+                <p className="mb-2 text-sm text-zinc-400">Preview</p>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="max-h-64 w-full rounded-2xl border border-zinc-800 object-cover"
+                />
+              </div>
+            )}
           </div>
 
           <button
             onClick={handleUpload}
-            disabled={loading}
-            className="w-full bg-blue-600 py-4 rounded-xl font-semibold shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition"
+            disabled={uploading}
+            className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-semibold shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Uploading..." : "Publish"}
+            {uploading ? "Uploading..." : "Publish for Review"}
           </button>
         </div>
       </div>

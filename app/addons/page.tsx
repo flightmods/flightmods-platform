@@ -11,6 +11,7 @@ type Addon = {
   description: string;
   author: string;
   author_name?: string;
+  author_id: string;
   file_url: string;
   image_url?: string;
   version: string;
@@ -18,6 +19,7 @@ type Addon = {
   created_at: string;
   sim: string;
   category: string;
+  status: string;
 };
 
 export default function AddonsPage() {
@@ -32,6 +34,7 @@ export default function AddonsPage() {
       const { data, error } = await supabase
         .from("addons")
         .select("*")
+        .eq("status", "approved")
         .order("created_at", { ascending: false });
 
       if (error) {

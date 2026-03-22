@@ -25,18 +25,21 @@ export default function Home() {
       const { data: featuredRows } = await supabase
         .from("addons")
         .select("*")
+        .eq("status", "approved")
         .order("downloads", { ascending: false })
         .limit(1);
 
       const { data: latestData } = await supabase
         .from("addons")
         .select("*")
+        .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(6);
 
       const { data: popularData } = await supabase
         .from("addons")
         .select("*")
+        .eq("status", "approved")
         .order("downloads", { ascending: false })
         .limit(6);
 

@@ -38,58 +38,77 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-r from-blue-500/10 via-cyan-400/5 to-indigo-500/10" />
+
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="FlightMods"
-            width={170}
-            height={52}
-            priority
-            className="h-auto w-[170px] object-contain"
-          />
+          <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-2 shadow-lg shadow-blue-500/10">
+            <Image
+              src="/logo.png"
+              alt="FlightMods"
+              width={140}
+              height={44}
+              priority
+              className="h-auto w-[120px] object-contain md:w-[140px]"
+            />
+          </div>
         </Link>
 
-        <div className="flex items-center gap-6 text-sm">
-          <Link href="/addons" className="hover:text-blue-400 transition">
+        <div className="flex items-center gap-3 md:gap-6 text-sm">
+          <Link
+            href="/addons"
+            className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
+          >
             Addons
           </Link>
 
-          <Link href="/upload" className="hover:text-blue-400 transition">
+          <Link
+            href="/upload"
+            className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
+          >
             Upload
           </Link>
 
           {loading ? null : user ? (
             <>
-              <Link href="/profile" className="hover:text-blue-400 transition">
+              <Link
+                href="/profile"
+                className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
+              >
                 Profil
               </Link>
 
-              <span className="hidden text-zinc-400 md:inline">
+              <span className="hidden text-zinc-400 lg:inline">
                 {user.email}
               </span>
 
               <button
                 onClick={handleLogout}
-                className="rounded-lg bg-zinc-800 px-4 py-2 transition hover:bg-zinc-700"
+                className="rounded-xl border border-white/10 bg-zinc-800/80 px-4 py-2 text-white transition hover:bg-zinc-700"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="hover:text-blue-400 transition">
+              <Link
+                href="/login"
+                className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
+              >
                 Login
               </Link>
 
-              <Link href="/register" className="hover:text-blue-400 transition">
+              <Link
+                href="/register"
+                className="rounded-xl border border-blue-400/20 bg-blue-600/90 px-4 py-2 text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+              >
                 Register
               </Link>
             </>
           )}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

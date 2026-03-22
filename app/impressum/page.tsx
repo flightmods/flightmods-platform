@@ -9,11 +9,11 @@ export default function ImpressumPage() {
             Angaben gemäß § 5 DDG
           </h2>
           <p>
-            Christoph [Nachname]
+            Christoph Adam
             <br />
-            [Straße und Hausnummer]
+            Lindenweg 29
             <br />
-            [PLZ Ort]
+            61184 Karben
             <br />
             Deutschland
           </p>
@@ -21,7 +21,7 @@ export default function ImpressumPage() {
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">Kontakt</h2>
-          <p>E-Mail: [deine E-Mail-Adresse]</p>
+          <p>E-Mail: christoph_adam@outlook.de</p>
         </section>
 
         <section>
@@ -29,18 +29,17 @@ export default function ImpressumPage() {
             Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV
           </h2>
           <p>
-            Christoph [Nachname]
+            Christoph Adam
             <br />
-            [Straße und Hausnummer]
+            Lindenweg 29
             <br />
-            [PLZ Ort]
+            61184 Karben
           </p>
         </section>
 
         <section>
           <p className="text-zinc-500 text-sm">
-            Hinweis: Bitte ersetze die Platzhalter durch deine echten Angaben,
-            bevor die Seite öffentlich beworben wird.
+            
           </p>
         </section>
       </div>

@@ -1,101 +1,100 @@
 export default function DatenschutzPage() {
   return (
     <main className="max-w-4xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold mb-8">Datenschutzerklärung</h1>
+      <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
 
       <div className="space-y-8 text-zinc-300 leading-7">
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            1. Allgemeine Hinweise
+            1. General Information
           </h2>
           <p>
-            Der Schutz deiner persönlichen Daten ist uns wichtig. In dieser
-            Datenschutzerklärung informieren wir darüber, welche Daten auf
-            FlightMods.de erfasst und verarbeitet werden.
+            The protection of your personal data is important to us. In this
+            privacy policy, we inform you about which data is collected and
+            processed on FlightMods.de.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            2. Verantwortliche Stelle
+            2. Responsible body
           </h2>
           <p>
-            Christoph [Nachname]
+            Christoph Adam
             <br />
-            [Straße und Hausnummer]
+            Lindenweg 29
             <br />
-            [PLZ Ort]
+            61184 Karben
             <br />
-            E-Mail: [deine E-Mail-Adresse]
+            E-Mail: christoph_adam@outlook.de
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            3. Erhebung und Verarbeitung personenbezogener Daten
+            3. Collection and processing of personal data
           </h2>
           <p>
-            Beim Besuch und bei der Nutzung von FlightMods.de können insbesondere
-            folgende Daten verarbeitet werden:
+            When visiting and using FlightMods.de, certain data may be processed, including:
           </p>
           <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>E-Mail-Adresse bei Registrierung und Login</li>
-            <li>gewählter Benutzername</li>
-            <li>hochgeladene Dateien und Bilder</li>
-            <li>technische Zugriffsdaten wie IP-Adresse und Zeitstempel</li>
+            <li>E-mail address during registration and login</li>
+            <li>selected username</li>
+            <li>uploaded files and images</li>
+            <li>technical access data such as IP address and timestamp</li>
           </ul>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            4. Hosting und technische Dienstleister
+            4. Hosting and technical service providers
           </h2>
           <p>
-            Diese Website wird über Vercel gehostet. Für Authentifizierung,
-            Datenbank und Dateispeicherung wird Supabase verwendet. Dabei können
-            technische Nutzungsdaten verarbeitet werden, soweit dies für den
-            Betrieb der Plattform erforderlich ist.
+            This website is hosted via Vercel. For authentication,
+            database, and file storage, Supabase is used. During this process,
+            technical usage data will be processed to the extent necessary for the
+            operation of the platform.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            5. Zweck der Verarbeitung
+            5. Purpose of data processing
           </h2>
           <p>
-            Die Verarbeitung erfolgt zum Betrieb der Plattform, zur
-            Benutzerverwaltung, zur Bereitstellung von Upload- und Download-
-            Funktionen sowie zur Darstellung von Creator-Profilen und Addons.
+            The processing is carried out for the operation of the platform, 
+            user management, the provision of upload and download
+            functions as well as the presentation of creator profiles and addons.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            6. Speicherdauer
+            6. Storage Duration
           </h2>
           <p>
-            Personenbezogene Daten werden nur so lange gespeichert, wie dies für
-            den Betrieb der Plattform oder aufgrund gesetzlicher Verpflichtungen
-            erforderlich ist.
+            Personal data will only be stored for as long as necessary for
+            the operation of the platform or based on legal obligations.
           </p>
         </section>
 
         <section>
           <h2 className="text-xl font-semibold mb-2 text-white">
-            7. Rechte betroffener Personen
+            7. Rights of Data Subjects
           </h2>
           <p>
-            Du hast im Rahmen der geltenden gesetzlichen Bestimmungen das Recht
-            auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung
-            sowie auf Widerspruch gegen die Verarbeitung deiner Daten.
+            You have the right under the applicable legal provisions to obtain from the 
+            controller information about the personal data stored about you, to request 
+            correction or deletion of such data, to restrict processing, and to object 
+            to processing for legitimate reasons.
           </p>
         </section>
 
         <section>
           <p className="text-zinc-500 text-sm">
-            Hinweis: Diese Datenschutzerklärung ist eine technische Grundversion
-            und sollte vor einem öffentlichen Launch rechtlich überprüft und um
-            alle tatsächlich eingesetzten Dienste ergänzt werden.
+            Note: This privacy policy is a technical draft
+            and should be legally reviewed and updated to include
+            all services actually in use before a public launch.
           </p>
         </section>
       </div>

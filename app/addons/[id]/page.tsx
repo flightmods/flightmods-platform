@@ -123,7 +123,7 @@ export default async function AddonDetailPage({
           <div className="space-y-8">
             {/* Description */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
-              <h2 className="mb-4 text-2xl font-bold">Beschreibung</h2>
+              <h2 className="mb-4 text-2xl font-bold">Description</h2>
               <div className="text-zinc-300 leading-8 whitespace-pre-line">
                 {typedAddon.description}
               </div>
@@ -152,7 +152,7 @@ export default async function AddonDetailPage({
                 <div>
                   <p className="text-lg font-semibold">{creatorName}</p>
                   <p className="text-sm text-zinc-400">
-                    Zur Creator-Seite
+                    Go to Creator Page
                   </p>
                 </div>
               </Link>
@@ -176,7 +176,7 @@ export default async function AddonDetailPage({
                 </div>
 
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                  <span className="text-zinc-400">Kategorie</span>
+                  <span className="text-zinc-400">Category</span>
                   <span>{typedAddon.category}</span>
                 </div>
 
@@ -204,7 +204,7 @@ export default async function AddonDetailPage({
               <h2 className="mb-4 text-xl font-bold">Info</h2>
 
               <p className="text-sm text-zinc-400">
-                Hochgeladen von{" "}
+                Uploaded by{" "}
                 <Link
                   href={`/creator/${creatorName}`}
                   className="text-blue-400 hover:text-blue-300"

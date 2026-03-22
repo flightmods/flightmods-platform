@@ -54,32 +54,32 @@ export default function LoginPage() {
             </p>
             <h1 className="mb-4 text-5xl font-bold md:text-6xl">Login</h1>
             <p className="max-w-xl text-zinc-400 leading-8">
-              Melde dich an, um Addons hochzuladen, dein Creator-Profil zu
-              verwalten und deine Inhalte auf FlightMods zu veröffentlichen.
+              Sign up to upload add-ons, manage your creator profile,
+              and publish your content on FlightMods.
             </p>
           </div>
 
           {/* Right */}
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
-            <h2 className="mb-6 text-2xl font-bold">Willkommen zurück</h2>
+            <h2 className="mb-6 text-2xl font-bold">Welcome back</h2>
 
             <div className="space-y-5">
               <div>
                 <label className="mb-2 block text-sm text-zinc-400">E-Mail</label>
                 <input
                   className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
-                  placeholder="deine@email.de"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm text-zinc-400">Passwort</label>
+                <label className="mb-2 block text-sm text-zinc-400">Password</label>
                 <input
                   className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
                   type="password"
-                  placeholder="Dein Passwort"
+                  placeholder="Your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -90,14 +90,14 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-2xl bg-blue-600 px-6 py-4 font-semibold shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? "Melde an..." : "Einloggen"}
+                {loading ? "Logging in..." : "Login"}
               </button>
             </div>
 
             <p className="mt-6 text-sm text-zinc-400">
-              Noch kein Account?{" "}
+              No account yet?{" "}
               <Link href="/register" className="text-blue-400 hover:text-blue-300">
-                Jetzt registrieren
+                Sign up
               </Link>
             </p>
           </div>

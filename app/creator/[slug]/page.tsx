@@ -36,6 +36,7 @@ export default async function CreatorPage({
   const { data: addons, error } = await supabase
     .from("addons")
     .select("*")
+    .eq("status", "approved")
     .order("created_at", { ascending: false });
 
   if (error || !addons) {
