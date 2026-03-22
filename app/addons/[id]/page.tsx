@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import DownloadButton from "@/components/DownloadButton";
+import CommentsSection from "@/components/CommentsSection";
+import RatingSection from "@/components/RatingSection";
 
 type Addon = {
   id: string;
@@ -35,6 +37,7 @@ export default async function AddonDetailPage({
     .from("addons")
     .select("*")
     .eq("id", id)
+    .eq("status", "approved")
     .single();
 
   if (error || !addon) {
@@ -128,6 +131,9 @@ export default async function AddonDetailPage({
                 {typedAddon.description}
               </div>
             </section>
+
+            <RatingSection addonId={typedAddon.id} />
+            <CommentsSection addonId={typedAddon.id} />
 
             {/* Creator */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">

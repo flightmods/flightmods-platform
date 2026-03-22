@@ -170,21 +170,28 @@ export default function AdminPage() {
                     <p>Status: {addon.status}</p>
                   </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => updateStatus(addon.id, "approved")}
-                      className="rounded-xl bg-green-600 px-4 py-2 font-medium transition hover:bg-green-700"
-                    >
-                      Approve
-                    </button>
+                 <div className="flex flex-wrap gap-3">
+  <a
+    href={`/admin/${addon.id}`}
+    className="rounded-xl bg-zinc-800 px-4 py-2 font-medium transition hover:bg-zinc-700"
+  >
+    Preview Details
+  </a>
 
-                    <button
-                      onClick={() => updateStatus(addon.id, "rejected")}
-                      className="rounded-xl bg-red-600 px-4 py-2 font-medium transition hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
-                  </div>
+  <button
+    onClick={() => updateStatus(addon.id, "approved")}
+    className="rounded-xl bg-green-600 px-4 py-2 font-medium transition hover:bg-green-700"
+  >
+    Approve
+  </button>
+
+  <button
+    onClick={() => updateStatus(addon.id, "rejected")}
+    className="rounded-xl bg-red-600 px-4 py-2 font-medium transition hover:bg-red-700"
+  >
+    Reject
+  </button>
+</div>
                 </div>
               </div>
             </div>

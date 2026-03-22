@@ -125,7 +125,7 @@ export default function ProfilePage() {
         .upload(avatarName, avatar);
 
       if (uploadError) {
-        alert(`Avatar-Upload fehlgeschlagen: ${uploadError.message}`);
+        alert(`Avatar-Upload failed: ${uploadError.message}`);
         setSaving(false);
         return;
       }
@@ -165,7 +165,7 @@ export default function ProfilePage() {
     return (
       <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
         <div className="mx-auto max-w-6xl px-6 py-12">
-          <p className="text-zinc-400">Lade Profil...</p>
+          <p className="text-zinc-400">Loading Profile...</p>
         </div>
       </main>
     );
@@ -176,8 +176,8 @@ export default function ProfilePage() {
       <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
-            <h1 className="mb-4 text-4xl font-bold">Profil</h1>
-            <p className="text-red-400">Du bist nicht eingeloggt.</p>
+            <h1 className="mb-4 text-4xl font-bold">Profile</h1>
+            <p className="text-red-400">You are not logged in.</p>
           </div>
         </div>
       </main>
@@ -242,10 +242,10 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex-1">
-                  <p className="mb-1 text-sm text-zinc-400">Öffentlicher Benutzername</p>
+                  <p className="mb-1 text-sm text-zinc-400">Public username</p>
                   <h2 className="text-3xl font-bold">{profile.username}</h2>
 
-                  <p className="mt-3 text-sm text-zinc-400">Eingeloggt als</p>
+                  <p className="mt-3 text-sm text-zinc-400">Logged in as</p>
                   <p className="text-zinc-200">{user.email}</p>
 
                   {profile.bio ? (
@@ -254,7 +254,7 @@ export default function ProfilePage() {
                     </p>
                   ) : (
                     <p className="mt-4 text-zinc-500">
-                      Noch keine Bio hinterlegt.
+                      No bio yet.
                     </p>
                   )}
                 </div>
@@ -263,12 +263,12 @@ export default function ProfilePage() {
 
             {/* Edit Profile */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
-              <h2 className="mb-5 text-2xl font-bold">Profil bearbeiten</h2>
+              <h2 className="mb-5 text-2xl font-bold">Edit Profile</h2>
 
               <label className="mb-2 block text-sm text-zinc-400">Bio</label>
               <textarea
                 className="mb-5 min-h-[140px] w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 text-white outline-none placeholder:text-zinc-500 focus:border-blue-500"
-                placeholder="Erzähl etwas über dich als Creator..."
+                placeholder="Tell us something about yourself as a creator..."
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
               />
@@ -293,17 +293,17 @@ export default function ProfilePage() {
             {/* My Addons */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
               <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Meine Addons</h2>
+                <h2 className="text-2xl font-bold">My Addons</h2>
                 <Link
                   href={`/creator/${profile.username}`}
                   className="rounded-xl bg-zinc-800 px-4 py-2 text-sm transition hover:bg-zinc-700"
                 >
-                  Öffentliche Creator-Seite
+                  Public Creator Page
                 </Link>
               </div>
 
               {addons.length === 0 ? (
-                <p className="text-zinc-400">Du hast noch keine Addons hochgeladen.</p>
+                <p className="text-zinc-400">You haven't uploaded any addons yet.</p>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2">
                   {addons.map((addon) => (
@@ -364,7 +364,7 @@ export default function ProfilePage() {
           {/* Right Sidebar */}
           <aside className="space-y-6">
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
-              <h2 className="mb-5 text-2xl font-bold">Statistiken</h2>
+              <h2 className="mb-5 text-2xl font-bold">Statistics</h2>
 
               <div className="space-y-3 text-sm text-zinc-300">
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
@@ -373,7 +373,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                  <span className="text-zinc-400">Gesamtdownloads</span>
+                  <span className="text-zinc-400">Total Downloads</span>
                   <span>{totalDownloads}</span>
                 </div>
 
@@ -385,7 +385,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
-              <h2 className="mb-4 text-xl font-bold">Schnellzugriff</h2>
+              <h2 className="mb-4 text-xl font-bold">Quick Access</h2>
 
               <div className="flex flex-col gap-3">
   <Link
