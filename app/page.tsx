@@ -205,6 +205,14 @@ export default function Home() {
           </div>
         </section>
 
+<a
+  href="https://discord.gg/sg3jHn3a"
+  target="_blank"
+  className="rounded-xl bg-indigo-600 px-6 py-3 font-medium hover:bg-indigo-700 transition"
+>
+  Join our Discord
+</a>
+
         {/* Latest Addons */}
         <section className="mb-16">
           <h2 className="text-2xl font-semibold mb-6">Latest Addons</h2>

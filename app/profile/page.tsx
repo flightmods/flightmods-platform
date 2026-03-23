@@ -157,7 +157,7 @@ export default function ProfilePage() {
       avatar_url: avatarUrl ?? undefined,
     });
 
-    alert("Profil aktualisiert.");
+    alert("Profile updated.");
     setSaving(false);
   };
 
@@ -286,7 +286,7 @@ export default function ProfilePage() {
                 disabled={saving}
                 className="rounded-xl bg-blue-600 px-6 py-3 font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 disabled:opacity-50"
               >
-                {saving ? "Speichere..." : "Profil speichern"}
+                {saving ? "Saving..." : "Save profile"}
               </button>
             </section>
 
@@ -354,6 +354,14 @@ export default function ProfilePage() {
                       <p className="text-sm text-zinc-500">
                         {addon.downloads} Downloads
                       </p>
+                      <div className="mt-4">
+                        <Link
+                        href={`/edit/${addon.id}`}
+                        className="inline-block rounded-xl bg-zinc-800 px-4 py-2 text-sm font-medium transition hover:bg-zinc-700"
+                        >
+                         Edit Addon
+                           </Link>
+                         </div>
                     </div>
                   ))}
                 </div>

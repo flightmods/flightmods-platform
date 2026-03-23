@@ -16,6 +16,10 @@ export default function Footer() {
           </p>
         </div>
 
+<a href="https://discord.gg/sg3jHn3a" target="_blank">
+  Discord
+</a>
+
         {/* Right side */}
         <div className="flex flex-wrap items-center gap-5">
           <a
