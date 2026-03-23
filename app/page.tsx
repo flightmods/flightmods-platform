@@ -181,37 +181,40 @@ export default function Home() {
         )}
 
         {/* Hero */}
-        <section className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">FlightMods</h1>
+        <section className="text-center mb-24">
+  <h1 className="text-5xl md:text-6xl font-bold mb-4">FlightMods</h1>
 
-          <p className="text-zinc-400 mb-8">
-            Your platform for Flight Simulator addons
-          </p>
+  <p className="text-zinc-400 mb-8">
+    Your platform for Flight Simulator addons
+  </p>
 
-          <div className="flex justify-center gap-4">
-            <Link
-              href="/addons"
-              className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-            >
-              Explore Addons
-            </Link>
+  <div className="flex flex-col items-center gap-4">
+    <div className="flex gap-4">
+      <Link
+        href="/addons"
+        className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+      >
+        Explore Addons
+      </Link>
 
-            <Link
-              href="/upload"
-              className="bg-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-700 transition"
-            >
-              Upload Addon
-            </Link>
-          </div>
-        </section>
+      <Link
+        href="/upload"
+        className="bg-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-700 transition"
+      >
+        Upload Addon
+      </Link>
+    </div>
 
-<a
-  href="https://discord.gg/sg3jHn3a"
-  target="_blank"
-  className="rounded-xl bg-indigo-600 px-6 py-3 font-medium hover:bg-indigo-700 transition"
->
-  Join our Discord
-</a>
+    <a
+      href="https://discord.gg/SxxDtTcX"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bg-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20"
+    >
+      Join our Discord
+    </a>
+  </div>
+</section>
 
         {/* Latest Addons */}
         <section className="mb-16">
