@@ -89,14 +89,6 @@ export default function DatenschutzPage() {
             to processing for legitimate reasons.
           </p>
         </section>
-
-        <section>
-          <p className="text-zinc-500 text-sm">
-            Note: This privacy policy is a technical draft
-            and should be legally reviewed and updated to include
-            all services actually in use before a public launch.
-          </p>
-        </section>
       </div>
     </main>
   );
