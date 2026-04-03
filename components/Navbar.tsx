@@ -3,8 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 type UserLike = {
   email?: string;
@@ -13,6 +13,7 @@ type UserLike = {
 export default function Navbar() {
   const [user, setUser] = useState<UserLike | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
@@ -33,12 +34,12 @@ export default function Navbar() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const router = useRouter();
-
-const handleLogout = async () => {
-  await supabase.auth.signOut();
-  router.push("/");
-};
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
@@ -58,7 +59,7 @@ const handleLogout = async () => {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3 md:gap-6 text-sm">
+        <div className="flex items-center gap-3 text-sm md:gap-6">
           <Link
             href="/addons"
             className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
@@ -79,7 +80,7 @@ const handleLogout = async () => {
                 href="/profile"
                 className="rounded-xl px-3 py-2 text-zinc-200 transition hover:bg-white/5 hover:text-blue-300"
               >
-                Profil
+                Profile
               </Link>
 
               <span className="hidden text-zinc-400 lg:inline">
