@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setReady(true);
       }
     });
@@ -51,22 +51,28 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
 
-    if (error) {
-      setErrorMessage(error.message);
+      if (error) {
+        setErrorMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      setSuccessMessage("Password updated successfully. Redirecting to login...");
       setLoading(false);
-      return;
+
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
+    } catch (error) {
+      console.error("Password update error:", error);
+      setErrorMessage("An unexpected error occurred.");
+      setLoading(false);
     }
-
-   setSuccessMessage("Password updated successfully. Redirecting to login...");
-setLoading(false);
-
-setTimeout(() => {
-  window.location.href = "/login";
-}, 1500);
   }
 
   return (
