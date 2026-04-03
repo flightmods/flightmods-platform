@@ -130,12 +130,11 @@ export default function ProfilePage() {
     data: { subscription },
   } = supabase.auth.onAuthStateChange((event) => {
     if (event === "SIGNED_OUT") {
-      setUser(null);
-      setProfile(null);
-      setAddons([]);
-      router.replace("/");
-      router.refresh();
-    }
+  setUser(null);
+  setProfile(null);
+  setAddons([]);
+  window.location.replace("/");
+}
   });
 
   return () => {
