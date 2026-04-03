@@ -61,11 +61,12 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    setSuccessMessage("Password updated successfully. Redirecting to login...");
+   setSuccessMessage("Password updated successfully. Redirecting to login...");
+setLoading(false);
 
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 1500);
+setTimeout(() => {
+  window.location.href = "/login";
+}, 1500);
   }
 
   return (
