@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 const ADMIN_EMAIL = "christoph_adam@outlook.de";
 
@@ -63,52 +64,85 @@ export default function ProfilePage() {
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const currentUser = userData.user;
+  let isMounted = true;
 
-      if (!currentUser) {
+  const loadProfile = async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    const currentUser = userData.user;
+
+    if (!currentUser) {
+      if (isMounted) {
+        setUser(null);
+        setProfile(null);
+        setAddons([]);
         setLoading(false);
-        return;
+        router.replace("/");
       }
+      return;
+    }
 
+    if (isMounted) {
       setUser({
         id: currentUser.id,
         email: currentUser.email ?? "",
       });
+    }
 
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", currentUser.id)
-        .maybeSingle();
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
 
-      if (!profileData) {
-        window.location.href = "/setup-profile";
-        return;
-      }
+    if (!profileData) {
+      router.replace("/setup-profile");
+      return;
+    }
 
-      const typedProfile = profileData as Profile;
+    const typedProfile = profileData as Profile;
+
+    if (isMounted) {
       setProfile(typedProfile);
       setBio(typedProfile.bio ?? "");
+    }
 
-      const { data: addonData, error } = await supabase
-        .from("addons")
-        .select("*")
-        .eq("author_id", currentUser.id)
-        .order("created_at", { ascending: false });
+    const { data: addonData, error } = await supabase
+      .from("addons")
+      .select("*")
+      .eq("author_id", currentUser.id)
+      .order("created_at", { ascending: false });
 
-      if (!error && addonData) {
-        setAddons(addonData as Addon[]);
-      }
+    if (!error && addonData && isMounted) {
+      setAddons(addonData as Addon[]);
+    }
 
+    if (isMounted) {
       setLoading(false);
-    };
+    }
+  };
 
-    loadProfile();
-  }, []);
+  loadProfile();
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") {
+      setUser(null);
+      setProfile(null);
+      setAddons([]);
+      router.replace("/");
+      router.refresh();
+    }
+  });
+
+  return () => {
+    isMounted = false;
+    subscription.unsubscribe();
+  };
+}, [router]);
 
   const handleSaveProfile = async () => {
     if (!user || !profile) return;
