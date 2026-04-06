@@ -35,11 +35,17 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    router.push("/");
-    router.refresh();
-  };
+  try {
+    await Promise.race([
+      supabase.auth.signOut(),
+      new Promise((resolve) => setTimeout(resolve, 1000)),
+    ]);
+  } catch (error) {
+    console.error("Logout error:", error);
+  } finally {
+    window.location.replace("/");
+  }
+};
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/40 backdrop-blur-xl">
