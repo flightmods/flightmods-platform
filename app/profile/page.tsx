@@ -64,84 +64,86 @@ export default function ProfilePage() {
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deletingAddonId, setDeletingAddonId] = useState<string | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
-  let isMounted = true;
+    let isMounted = true;
 
-  const loadProfile = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    const currentUser = userData.user;
+    const loadProfile = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const currentUser = userData.user;
 
-    if (!currentUser) {
+      if (!currentUser) {
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
+          setAddons([]);
+          setLoading(false);
+          router.replace("/");
+        }
+        return;
+      }
+
       if (isMounted) {
+        setUser({
+          id: currentUser.id,
+          email: currentUser.email ?? "",
+        });
+      }
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .maybeSingle();
+
+      if (!profileData) {
+        router.replace("/setup-profile");
+        return;
+      }
+
+      const typedProfile = profileData as Profile;
+
+      if (isMounted) {
+        setProfile(typedProfile);
+        setBio(typedProfile.bio ?? "");
+      }
+
+      const { data: addonData, error } = await supabase
+        .from("addons")
+        .select("*")
+        .eq("author_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && addonData && isMounted) {
+        setAddons(addonData as Addon[]);
+      }
+
+      if (isMounted) {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
         setAddons([]);
-        setLoading(false);
-        router.replace("/");
+        window.location.replace("/");
       }
-      return;
-    }
+    });
 
-    if (isMounted) {
-      setUser({
-        id: currentUser.id,
-        email: currentUser.email ?? "",
-      });
-    }
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", currentUser.id)
-      .maybeSingle();
-
-    if (!profileData) {
-      router.replace("/setup-profile");
-      return;
-    }
-
-    const typedProfile = profileData as Profile;
-
-    if (isMounted) {
-      setProfile(typedProfile);
-      setBio(typedProfile.bio ?? "");
-    }
-
-    const { data: addonData, error } = await supabase
-      .from("addons")
-      .select("*")
-      .eq("author_id", currentUser.id)
-      .order("created_at", { ascending: false });
-
-    if (!error && addonData && isMounted) {
-      setAddons(addonData as Addon[]);
-    }
-
-    if (isMounted) {
-      setLoading(false);
-    }
-  };
-
-  loadProfile();
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((event) => {
-    if (event === "SIGNED_OUT") {
-  setUser(null);
-  setProfile(null);
-  setAddons([]);
-  window.location.replace("/");
-}
-  });
-
-  return () => {
-    isMounted = false;
-    subscription.unsubscribe();
-  };
-}, [router]);
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [router]);
 
   const handleSaveProfile = async () => {
     if (!user || !profile) return;
@@ -194,6 +196,48 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
+  const handleDeleteAddon = async (addonId: string, addonTitle: string) => {
+    if (!user) return;
+
+    const confirmed = window.confirm(
+      `Do you really want to delete "${addonTitle}"?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingAddonId(addonId);
+
+      const res = await fetch("/api/delete-addon", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          addonId,
+          userId: user.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to delete addon.");
+        return;
+      }
+
+      setAddons((prev) => prev.filter((addon) => addon.id !== addonId));
+      alert("Addon deleted successfully.");
+    } catch (error) {
+      console.error("DELETE ADDON ERROR:", error);
+      alert("Unexpected error while deleting addon.");
+    } finally {
+      setDeletingAddonId(null);
+    }
+  };
+
   if (loading) {
     return (
       <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
@@ -224,14 +268,12 @@ export default function ProfilePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
-      {/* Glow Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
         <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
         <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
       </div>
 
-      {/* Grid Overlay */}
       <div
         className="absolute inset-0 -z-10 opacity-[0.08]"
         style={{
@@ -242,7 +284,6 @@ export default function ProfilePage() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12">
-        {/* Header */}
         <section className="mb-10">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
             Creator Profile
@@ -255,9 +296,7 @@ export default function ProfilePage() {
         </section>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          {/* Left */}
           <div className="space-y-8">
-            {/* Main Profile Card */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
               <div className="flex flex-col gap-6 md:flex-row md:items-center">
                 <div className="shrink-0">
@@ -286,15 +325,12 @@ export default function ProfilePage() {
                       {profile.bio}
                     </p>
                   ) : (
-                    <p className="mt-4 text-zinc-500">
-                      No bio yet.
-                    </p>
+                    <p className="mt-4 text-zinc-500">No bio yet.</p>
                   )}
                 </div>
               </div>
             </section>
 
-            {/* Edit Profile */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
               <h2 className="mb-5 text-2xl font-bold">Edit Profile</h2>
 
@@ -323,7 +359,6 @@ export default function ProfilePage() {
               </button>
             </section>
 
-            {/* My Addons */}
             <section className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-2xl font-bold">My Addons</h2>
@@ -353,14 +388,14 @@ export default function ProfilePage() {
                       )}
 
                       <div className="mb-3 flex items-start justify-between gap-3">
-  <Link href={`/addons/${addon.id}`}>
-    <h3 className="text-xl font-semibold hover:text-blue-400">
-      {addon.title}
-    </h3>
-  </Link>
+                        <Link href={`/addons/${addon.id}`}>
+                          <h3 className="text-xl font-semibold hover:text-blue-400">
+                            {addon.title}
+                          </h3>
+                        </Link>
 
-  {getStatusBadge(addon.status)}
-</div>
+                        {getStatusBadge(addon.status)}
+                      </div>
 
                       <p className="mb-4 text-sm leading-7 text-zinc-400">
                         {addon.description.length > 110
@@ -387,14 +422,23 @@ export default function ProfilePage() {
                       <p className="text-sm text-zinc-500">
                         {addon.downloads} Downloads
                       </p>
-                      <div className="mt-4">
+
+                      <div className="mt-4 flex flex-wrap gap-3">
                         <Link
-                        href={`/edit/${addon.id}`}
-                        className="inline-block rounded-xl bg-zinc-800 px-4 py-2 text-sm font-medium transition hover:bg-zinc-700"
+                          href={`/edit/${addon.id}`}
+                          className="inline-block rounded-xl bg-zinc-800 px-4 py-2 text-sm font-medium transition hover:bg-zinc-700"
                         >
-                         Edit Addon
-                           </Link>
-                         </div>
+                          Edit Addon
+                        </Link>
+
+                        <button
+                          onClick={() => handleDeleteAddon(addon.id, addon.title)}
+                          disabled={deletingAddonId === addon.id}
+                          className="inline-block rounded-xl bg-red-600 px-4 py-2 text-sm font-medium transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingAddonId === addon.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -402,7 +446,6 @@ export default function ProfilePage() {
             </section>
           </div>
 
-          {/* Right Sidebar */}
           <aside className="space-y-6">
             <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
               <h2 className="mb-5 text-2xl font-bold">Statistics</h2>
@@ -429,28 +472,28 @@ export default function ProfilePage() {
               <h2 className="mb-4 text-xl font-bold">Quick Access</h2>
 
               <div className="flex flex-col gap-3">
-  <Link
-    href="/upload"
-    className="rounded-xl bg-blue-600 px-4 py-3 text-center font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
-  >
-    Upload New Addon
-  </Link>
+                <Link
+                  href="/upload"
+                  className="rounded-xl bg-blue-600 px-4 py-3 text-center font-medium shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+                >
+                  Upload New Addon
+                </Link>
 
-  <Link
-    href={`/creator/${profile.username}`}
-    className="rounded-xl bg-zinc-800 px-4 py-3 text-center font-medium transition hover:bg-zinc-700"
-  >
-    Public Creator Page
-  </Link>
+                <Link
+                  href={`/creator/${profile.username}`}
+                  className="rounded-xl bg-zinc-800 px-4 py-3 text-center font-medium transition hover:bg-zinc-700"
+                >
+                  Public Creator Page
+                </Link>
 
-  {user.email === ADMIN_EMAIL && (
-    <Link
-      href="/admin"
-      className="rounded-xl bg-emerald-600 px-4 py-3 text-center font-medium transition hover:bg-emerald-700"
-    >
-      Open Admin Panel
-    </Link>
-  )}
+                {user.email === ADMIN_EMAIL && (
+                  <Link
+                    href="/admin"
+                    className="rounded-xl bg-emerald-600 px-4 py-3 text-center font-medium transition hover:bg-emerald-700"
+                  >
+                    Open Admin Panel
+                  </Link>
+                )}
               </div>
             </div>
           </aside>
