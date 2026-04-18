@@ -47,6 +47,7 @@ export default function UploadPage() {
 
   const handleUpload = async () => {
     console.log("1 - upload started");
+
     if (!user) {
       alert("You must be logged in to upload an addon.");
       return;
@@ -67,52 +68,103 @@ export default function UploadPage() {
       return;
     }
 
+    console.log("1.1 - validation passed");
     setUploading(true);
+    console.log("1.2 - uploading state set to true");
 
     try {
-      // Load creator profile
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, username")
-        .eq("id", user.id)
-        .maybeSingle();
+      console.log("2 - starting profile query", user.id);
 
-      if (profileError) {
-        console.error("Profile error:", profileError);
-        alert(`Failed to load profile: ${profileError.message}`);
-        return;
-        console.log("2 - user ok", user);
-      }
-console.log("3 - loading profile");
-      if (!profileData) {
-        alert("Please complete your profile before uploading.");
-        window.location.href = "/setup-profile";
-        return;
-      }
-console.log("4 - profile result", profileData, profileError);
-      const profile = profileData as Profile;
+let profile: Profile | null = null;
+
+try {
+  const profilePromise = supabase
+    .from("profiles")
+    .select("id, username")
+    .eq("id", user.id)
+    .limit(1)
+    .then(({ data, error }) => {
+      if (error) throw error;
+      return (data?.[0] as Profile | undefined) ?? null;
+    });
+
+  const timeoutPromise = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), 5000)
+  );
+
+  profile = await Promise.race([profilePromise, timeoutPromise]);
+} catch (profileError) {
+  console.error("Profile error:", profileError);
+}
+
+console.log("3 - profile query finished", profile);
+
+const fallbackUsername =
+  user.email?.split("@")[0]?.trim() || "User";
+
+const creatorUsername = profile?.username || fallbackUsername;
+
+if (!creatorUsername) {
+  alert("Could not determine a creator name for this upload.");
+  return;
+}
+
+console.log("4 - creator username resolved", creatorUsername);
+
 console.log("5 - uploading addon file");
-      // Upload addon file
-      const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
 
-      const { error: fileUploadError } = await supabase.storage
-        .from("addons")
-        .upload(safeFileName, file);
+const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
 
-      if (fileUploadError) {
-        console.error("File upload error:", fileUploadError);
-        alert(`Addon file upload failed: ${fileUploadError.message}`);
-        return;
-      }
+console.log("5.1 - file details", {
+  name: file.name,
+  size: file.size,
+  type: file.type,
+  lastModified: file.lastModified,
+  safeFileName,
+});
+
+const arrayBuffer = await file.arrayBuffer();
+const fileBytes = new Uint8Array(arrayBuffer);
+
+console.log("5.2 - converted file to Uint8Array", {
+  byteLength: fileBytes.byteLength,
+});
+
+const uploadPromise = supabase.storage
+  .from("addons")
+  .upload(safeFileName, fileBytes, {
+    contentType: "application/octet-stream",
+    upsert: false,
+  });
+
+const timeoutPromise = new Promise<never>((_, reject) =>
+  setTimeout(
+    () => reject(new Error("Addon file upload timed out after 20 seconds")),
+    20000
+  )
+);
+
+const result = await Promise.race([uploadPromise, timeoutPromise]);
+const { error: fileUploadError } = result;
+if (fileUploadError) {
+  console.error("File upload error:", fileUploadError);
+  alert(`Addon file upload failed: ${fileUploadError.message}`);
+  return;
+}
+
 console.log("6 - addon file upload result", fileUploadError);
+
       const {
         data: { publicUrl: fileUrl },
       } = supabase.storage.from("addons").getPublicUrl(safeFileName);
-console.log("7 - file url ready", fileUrl);
-      // Upload image (optional)
+
+      console.log("7 - file url ready", fileUrl);
+
       let imageUrl: string | null = null;
 
       if (image) {
+        console.log("8 - uploading image");
+
         const safeImageName = `${Date.now()}_${image.name.replace(/\s+/g, "_")}`;
 
         const { error: imageUploadError } = await supabase.storage
@@ -125,14 +177,16 @@ console.log("7 - file url ready", fileUrl);
           return;
         }
 
+        console.log("9 - image upload result", imageUploadError);
+
         const {
           data: { publicUrl: publicImageUrl },
         } = supabase.storage.from("addon-images").getPublicUrl(safeImageName);
 
         imageUrl = publicImageUrl;
+        console.log("10 - image url ready", imageUrl);
       }
 
-      // Insert addon row
       const payload = {
         title: title.trim(),
         description: description.trim(),
@@ -141,15 +195,15 @@ console.log("7 - file url ready", fileUrl);
         version: version.trim() || "1.0",
         file_url: fileUrl,
         image_url: imageUrl,
-        author: profile.username,
+        author: creatorUsername,
         author_id: user.id,
-        author_name: profile.username,
+        author_name: creatorUsername,
         downloads: 0,
         status: "pending",
       };
 
-      console.log("8 - inserting addon row", payload);
-      
+      console.log("11 - inserting addon row", payload);
+
       const { error: insertError } = await supabase
         .from("addons")
         .insert([payload]);
@@ -159,7 +213,9 @@ console.log("7 - file url ready", fileUrl);
         alert(`Database insert failed: ${insertError.message}`);
         return;
       }
-console.log("9 - insert result", insertError);
+
+      console.log("12 - insert result", insertError);
+
       alert("Addon uploaded successfully and is now pending review.");
 
       setTitle("");
@@ -186,12 +242,14 @@ console.log("9 - insert result", insertError);
       if (imageInput) {
         imageInput.value = "";
       }
+
+      console.log("13 - upload finished successfully");
     } catch (error) {
-      console.error("10 - unexpected error", error);
+      console.error("14 - unexpected error", error);
       console.error("Unexpected upload error:", error);
       alert("An unexpected error occurred during upload.");
     } finally {
-      console.log("11 - finally reached");
+      console.log("15 - finally reached");
       setUploading(false);
     }
   };
@@ -212,7 +270,9 @@ console.log("9 - insert result", insertError);
         <div className="mx-auto max-w-6xl px-6 py-12">
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 backdrop-blur">
             <h1 className="mb-4 text-4xl font-bold">Upload</h1>
-            <p className="text-red-400">You must be logged in to upload an addon.</p>
+            <p className="text-red-400">
+              You must be logged in to upload an addon.
+            </p>
           </div>
         </div>
       </main>
@@ -221,14 +281,12 @@ console.log("9 - insert result", insertError);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
-      {/* Glow */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
         <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
         <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
       </div>
 
-      {/* Grid */}
       <div
         className="absolute inset-0 -z-10 opacity-[0.08]"
         style={{
@@ -249,9 +307,11 @@ console.log("9 - insert result", insertError);
           </p>
         </div>
 
-        <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur space-y-6">
+        <div className="space-y-6 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur">
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Addon Title</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Addon Title
+            </label>
             <input
               className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
               placeholder="Enter addon title"
@@ -261,7 +321,9 @@ console.log("9 - insert result", insertError);
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Description</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Description
+            </label>
             <textarea
               className="min-h-[160px] w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
               placeholder="Describe your addon"
@@ -272,7 +334,9 @@ console.log("9 - insert result", insertError);
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Simulator</label>
+              <label className="mb-2 block text-sm text-zinc-400">
+                Simulator
+              </label>
               <select
                 className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none focus:border-blue-500"
                 value={sim}
@@ -285,7 +349,9 @@ console.log("9 - insert result", insertError);
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Category</label>
+              <label className="mb-2 block text-sm text-zinc-400">
+                Category
+              </label>
               <select
                 className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none focus:border-blue-500"
                 value={category}
@@ -300,7 +366,9 @@ console.log("9 - insert result", insertError);
             </div>
 
             <div>
-              <label className="mb-2 block text-sm text-zinc-400">Version</label>
+              <label className="mb-2 block text-sm text-zinc-400">
+                Version
+              </label>
               <input
                 className="w-full rounded-2xl border border-zinc-700 bg-black/30 p-4 outline-none placeholder:text-zinc-500 focus:border-blue-500"
                 placeholder="1.0"
@@ -311,7 +379,9 @@ console.log("9 - insert result", insertError);
           </div>
 
           <div>
-            <label className="mb-2 block text-sm text-zinc-400">Addon File</label>
+            <label className="mb-2 block text-sm text-zinc-400">
+              Addon File
+            </label>
             <input
               id="addon-file-input"
               type="file"
