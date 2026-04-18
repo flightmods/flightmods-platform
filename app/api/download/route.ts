@@ -1,43 +1,124 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const runtime = "nodejs";
+
+const BUCKET_NAME = "addons";
+
+function extractStoragePathFromFileUrl(fileUrl: string): string | null {
+  try {
+    const url = new URL(fileUrl);
+    const marker = `/storage/v1/object/public/${BUCKET_NAME}/`;
+    const fullPath = url.pathname;
+
+    const index = fullPath.indexOf(marker);
+    if (index === -1) return null;
+
+    return decodeURIComponent(fullPath.substring(index + marker.length));
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { id } = body;
+    // 🔐 TOKEN holen
+    const authHeader = req.headers.get("authorization");
 
-    if (!id) {
-      return NextResponse.json({ error: "Missing addon id" }, { status: 400 });
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Not authenticated" },
+        { status: 401 }
+      );
     }
 
-    const { data: addon, error: fetchError } = await supabase
+    const token = authHeader.replace("Bearer ", "").trim();
+
+    // 🔐 USER VALIDIEREN (über ADMIN CLIENT)
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: "Invalid session" },
+        { status: 401 }
+      );
+    }
+
+    // 📦 BODY
+    const body = await req.json();
+    const { fileUrl } = body as { fileUrl?: string };
+
+    if (!fileUrl) {
+      return NextResponse.json(
+        { error: "Missing fileUrl" },
+        { status: 400 }
+      );
+    }
+
+    // 🔍 ADDON CHECK
+    const { data: addon, error: addonError } = await supabaseAdmin
       .from("addons")
-      .select("downloads")
-      .eq("id", id)
+      .select("id, status, downloads, file_url")
+      .eq("file_url", fileUrl)
       .single();
 
-    if (fetchError || !addon) {
-      return NextResponse.json({ error: "Addon not found" }, { status: 404 });
+    if (addonError || !addon) {
+      return NextResponse.json(
+        { error: "Addon not found" },
+        { status: 404 }
+      );
     }
 
-    const currentDownloads = addon.downloads ?? 0;
+    if (addon.status !== "approved") {
+      return NextResponse.json(
+        { error: "Addon not available" },
+        { status: 403 }
+      );
+    }
 
-    const { error: updateError } = await supabase
+    // 📁 STORAGE PATH
+    const storagePath = extractStoragePathFromFileUrl(addon.file_url);
+
+    if (!storagePath) {
+      return NextResponse.json(
+        { error: "Invalid file path" },
+        { status: 500 }
+      );
+    }
+
+    // 📊 DOWNLOAD COUNT
+    await supabaseAdmin
       .from("addons")
-      .update({ downloads: currentDownloads + 1 })
-      .eq("id", id);
+      .update({
+        downloads: (addon.downloads || 0) + 1,
+      })
+      .eq("id", addon.id);
 
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    // 🔗 SIGNED URL
+    const { data, error } = await supabaseAdmin.storage
+      .from(BUCKET_NAME)
+      .createSignedUrl(storagePath, 60);
+
+    if (error || !data?.signedUrl) {
+      return NextResponse.json(
+        { error: error?.message || "Failed to generate URL" },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json({
+      url: data.signedUrl,
+    });
+  } catch (error) {
+    console.error("DOWNLOAD ERROR:", error);
+
+    return NextResponse.json(
+      { error: "Server error" },
+      { status: 500 }
+    );
   }
 }

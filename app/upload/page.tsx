@@ -8,11 +8,6 @@ type UserLike = {
   email?: string;
 };
 
-type Profile = {
-  id: string;
-  username: string;
-};
-
 export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -68,155 +63,42 @@ export default function UploadPage() {
       return;
     }
 
-    console.log("1.1 - validation passed");
     setUploading(true);
-    console.log("1.2 - uploading state set to true");
 
     try {
-      console.log("2 - starting profile query", user.id);
-
-let profile: Profile | null = null;
-
-try {
-  const profilePromise = supabase
-    .from("profiles")
-    .select("id, username")
-    .eq("id", user.id)
-    .limit(1)
-    .then(({ data, error }) => {
-      if (error) throw error;
-      return (data?.[0] as Profile | undefined) ?? null;
-    });
-
-  const timeoutPromise = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), 5000)
-  );
-
-  profile = await Promise.race([profilePromise, timeoutPromise]);
-} catch (profileError) {
-  console.error("Profile error:", profileError);
-}
-
-console.log("3 - profile query finished", profile);
-
-const fallbackUsername =
-  user.email?.split("@")[0]?.trim() || "User";
-
-const creatorUsername = profile?.username || fallbackUsername;
-
-if (!creatorUsername) {
-  alert("Could not determine a creator name for this upload.");
-  return;
-}
-
-console.log("4 - creator username resolved", creatorUsername);
-
-console.log("5 - uploading addon file");
-
-const safeFileName = `${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
-
-console.log("5.1 - file details", {
-  name: file.name,
-  size: file.size,
-  type: file.type,
-  lastModified: file.lastModified,
-  safeFileName,
-});
-
-const arrayBuffer = await file.arrayBuffer();
-const fileBytes = new Uint8Array(arrayBuffer);
-
-console.log("5.2 - converted file to Uint8Array", {
-  byteLength: fileBytes.byteLength,
-});
-
-const uploadPromise = supabase.storage
-  .from("addons")
-  .upload(safeFileName, fileBytes, {
-    contentType: "application/octet-stream",
-    upsert: false,
-  });
-
-const timeoutPromise = new Promise<never>((_, reject) =>
-  setTimeout(
-    () => reject(new Error("Addon file upload timed out after 20 seconds")),
-    20000
-  )
-);
-
-const result = await Promise.race([uploadPromise, timeoutPromise]);
-const { error: fileUploadError } = result;
-if (fileUploadError) {
-  console.error("File upload error:", fileUploadError);
-  alert(`Addon file upload failed: ${fileUploadError.message}`);
-  return;
-}
-
-console.log("6 - addon file upload result", fileUploadError);
-
-      const {
-        data: { publicUrl: fileUrl },
-      } = supabase.storage.from("addons").getPublicUrl(safeFileName);
-
-      console.log("7 - file url ready", fileUrl);
-
-      let imageUrl: string | null = null;
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("sim", sim);
+      formData.append("category", category);
+      formData.append("version", version.trim() || "1.0");
+      formData.append("userId", user.id);
+      formData.append("userEmail", user.email || "");
+      formData.append("file", file);
 
       if (image) {
-        console.log("8 - uploading image");
-
-        const safeImageName = `${Date.now()}_${image.name.replace(/\s+/g, "_")}`;
-
-        const { error: imageUploadError } = await supabase.storage
-          .from("addon-images")
-          .upload(safeImageName, image);
-
-        if (imageUploadError) {
-          console.error("Image upload error:", imageUploadError);
-          alert(`Image upload failed: ${imageUploadError.message}`);
-          return;
-        }
-
-        console.log("9 - image upload result", imageUploadError);
-
-        const {
-          data: { publicUrl: publicImageUrl },
-        } = supabase.storage.from("addon-images").getPublicUrl(safeImageName);
-
-        imageUrl = publicImageUrl;
-        console.log("10 - image url ready", imageUrl);
+        formData.append("image", image);
       }
 
-      const payload = {
-        title: title.trim(),
-        description: description.trim(),
-        sim,
-        category,
-        version: version.trim() || "1.0",
-        file_url: fileUrl,
-        image_url: imageUrl,
-        author: creatorUsername,
-        author_id: user.id,
-        author_name: creatorUsername,
-        downloads: 0,
-        status: "pending",
-      };
+      console.log("2 - sending upload request to /api/upload");
 
-      console.log("11 - inserting addon row", payload);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      const { error: insertError } = await supabase
-        .from("addons")
-        .insert([payload]);
+      const data = await res.json();
 
-      if (insertError) {
-        console.error("Insert error:", insertError);
-        alert(`Database insert failed: ${insertError.message}`);
+      console.log("3 - upload response", data);
+
+      if (!res.ok) {
+        alert(data.error || "Upload failed.");
         return;
       }
 
-      console.log("12 - insert result", insertError);
-
-      alert("Addon uploaded successfully and is now pending review.");
+      alert(
+        data.message || "Addon uploaded successfully and is now pending review."
+      );
 
       setTitle("");
       setDescription("");
@@ -243,13 +125,11 @@ console.log("6 - addon file upload result", fileUploadError);
         imageInput.value = "";
       }
 
-      console.log("13 - upload finished successfully");
+      console.log("4 - upload finished successfully");
     } catch (error) {
-      console.error("14 - unexpected error", error);
-      console.error("Unexpected upload error:", error);
+      console.error("UPLOAD PAGE ERROR:", error);
       alert("An unexpected error occurred during upload.");
     } finally {
-      console.log("15 - finally reached");
       setUploading(false);
     }
   };

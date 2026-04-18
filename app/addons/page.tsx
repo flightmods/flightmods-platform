@@ -68,14 +68,12 @@ export default function AddonsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
-      {/* Glow Background */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
         <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
         <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
       </div>
 
-      {/* Grid Overlay */}
       <div
         className="absolute inset-0 -z-10 opacity-[0.08]"
         style={{
@@ -86,7 +84,6 @@ export default function AddonsPage() {
       />
 
       <div className="mx-auto max-w-6xl px-6 py-12">
-        {/* Header */}
         <section className="mb-10">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
             Addon Library
@@ -98,7 +95,6 @@ export default function AddonsPage() {
           </p>
         </section>
 
-        {/* Filter Bar */}
         <section className="mb-10 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-5 backdrop-blur">
           <div className="grid gap-4 md:grid-cols-3">
             <input
@@ -135,14 +131,12 @@ export default function AddonsPage() {
           </div>
         </section>
 
-        {/* Result count */}
         {!loading && (
           <div className="mb-6 text-sm text-zinc-400">
             {filteredAddons.length} Addon{filteredAddons.length === 1 ? "" : "s"} found
           </div>
         )}
 
-        {/* Grid */}
         {loading ? (
           <p className="text-zinc-400">Loading addons...</p>
         ) : filteredAddons.length === 0 ? (

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-console.log("PROXY AKTIV:", process.env.MAINTENANCE_MODE);
+console.log("PROXY AKTIV:", process.env.MAINTENANCE_MODE, "NODE_ENV:", process.env.NODE_ENV);
 
 export function proxy(req: NextRequest) {
+  const isDev = process.env.NODE_ENV === "development";
   const maintenanceMode = process.env.MAINTENANCE_MODE === "true";
   const bypassToken = process.env.MAINTENANCE_BYPASS_TOKEN;
 
@@ -16,12 +17,15 @@ export function proxy(req: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.includes(".");
 
-  // Wenn Maintenance aus ODER erlaubter Pfad → normal weiter
-  if (!maintenanceMode || allowedPaths.includes(pathname) || isInternalPath) {
+  if (
+    isDev ||
+    !maintenanceMode ||
+    allowedPaths.includes(pathname) ||
+    isInternalPath
+  ) {
     return NextResponse.next();
   }
 
-  // Preview Token über URL (?preview=xyz)
   const previewToken = url.searchParams.get("preview");
 
   if (bypassToken && previewToken === bypassToken) {
@@ -35,13 +39,11 @@ export function proxy(req: NextRequest) {
     return response;
   }
 
-  // Cookie prüfen (wenn schon freigeschaltet)
   const cookie = req.cookies.get("preview_bypass")?.value;
   if (bypassToken && cookie === bypassToken) {
     return NextResponse.next();
   }
 
-  // Alles andere → Coming Soon
   return NextResponse.redirect(new URL("/coming-soon", req.url));
 }
 
