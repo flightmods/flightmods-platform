@@ -53,7 +53,6 @@ export default function Home() {
 
       const addons = (allApprovedAddons as Addon[]) || [];
       const ratings = (ratingsData as Rating[]) || [];
-
       const trendingData = buildTrendingAddons(addons, ratings);
 
       setFeatured(featuredRows?.[0] ?? null);
@@ -65,12 +64,14 @@ export default function Home() {
     fetchData();
   }, []);
 
+  const totalVisibleAddons = latest.length || trending.length;
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#030712] via-[#0b1120] to-black text-white">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/2 top-[-220px] h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-[160px]" />
-        <div className="absolute right-[-120px] top-[20%] h-[420px] w-[420px] rounded-full bg-cyan-400/10 blur-[130px]" />
-        <div className="absolute left-[-120px] bottom-[10%] h-[360px] w-[360px] rounded-full bg-indigo-500/10 blur-[120px]" />
+        <div className="absolute left-1/2 top-[-260px] h-[760px] w-[760px] -translate-x-1/2 rounded-full bg-blue-500/25 blur-[170px]" />
+        <div className="absolute right-[-140px] top-[18%] h-[440px] w-[440px] rounded-full bg-cyan-400/10 blur-[130px]" />
+        <div className="absolute left-[-130px] bottom-[12%] h-[380px] w-[380px] rounded-full bg-indigo-500/10 blur-[120px]" />
       </div>
 
       <div
@@ -82,108 +83,182 @@ export default function Home() {
         }}
       />
 
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {featured && (
-          <section className="mb-16">
-            <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/60 backdrop-blur">
-              {featured.image_url && (
-                <img
-                  src={featured.image_url}
-                  alt={featured.title}
-                  className="w-full h-[320px] object-cover"
-                />
-              )}
-
-              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-
-              <div className="absolute inset-0 flex flex-col justify-center p-10">
-                <p className="text-blue-400 text-sm mb-2">⭐ Featured Addon</p>
-
-                <h2 className="text-3xl md:text-5xl font-bold mb-3 max-w-2xl">
-                  {featured.title}
-                </h2>
-
-                <p className="text-zinc-200 max-w-3xl mb-6 text-lg leading-7">
-                  {featured.description.length > 140
-                    ? featured.description
-                        .substring(0, 140)
-                        .split(" ")
-                        .slice(0, -1)
-                        .join(" ") + "..."
-                    : featured.description}
-                </p>
-
-                <div className="flex gap-4 items-center">
-                  <Link
-                    href={`/addons/${featured.id}`}
-                    className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
-                  >
-                    View Addon
-                  </Link>
-
-                  <span className="text-sm text-zinc-400">
-                    {featured.downloads} downloads
-                  </span>
-                </div>
-              </div>
+      <div className="mx-auto max-w-6xl px-6 py-12">
+        <section className="mb-20 grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <div className="mb-5 inline-flex rounded-full border border-blue-400/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300">
+              New home for MSFS & X-Plane addons
             </div>
-          </section>
-        )}
 
-        <section className="text-center mb-24">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">FlightMods</h1>
+            <h1 className="mb-6 text-5xl font-bold leading-tight md:text-7xl">
+              Discover better flight sim addons.
+            </h1>
 
-          <p className="text-zinc-400 mb-8">
-            Your platform for Flight Simulator addons
-          </p>
+            <p className="mb-8 max-w-2xl text-lg leading-8 text-zinc-300">
+              FlightMods is a growing platform for Microsoft Flight Simulator
+              and X-Plane creators. Browse aircraft, liveries, scenery,
+              utilities and community-made mods in one clean place.
+            </p>
 
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex gap-4">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row">
               <Link
                 href="/addons"
-                className="bg-blue-600 shadow-lg shadow-blue-600/20 px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                className="rounded-2xl bg-blue-600 px-7 py-4 text-center font-semibold shadow-lg shadow-blue-600/25 transition hover:bg-blue-700"
               >
-                Explore Addons
+                Browse Addons
+              </Link>
+
+              <Link
+                href="/register"
+                className="rounded-2xl border border-zinc-700 bg-zinc-900/70 px-7 py-4 text-center font-semibold transition hover:border-zinc-500 hover:bg-zinc-800"
+              >
+                Create Account
               </Link>
 
               <Link
                 href="/upload"
-                className="bg-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-700 transition"
+                className="rounded-2xl bg-zinc-800 px-7 py-4 text-center font-semibold transition hover:bg-zinc-700"
               >
                 Upload Addon
               </Link>
             </div>
 
-            <a
-              href="https://discord.gg/SxxDtTcX"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-indigo-600 px-6 py-3 rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-600/20"
-            >
-              Join our Discord
-            </a>
+            <div className="grid max-w-xl grid-cols-3 gap-3 text-sm">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+                <p className="text-2xl font-bold">{totalVisibleAddons}+</p>
+                <p className="text-zinc-500">Addons listed</p>
+              </div>
+
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+                <p className="text-2xl font-bold">Free</p>
+                <p className="text-zinc-500">Community mods</p>
+              </div>
+
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+                <p className="text-2xl font-bold">Review</p>
+                <p className="text-zinc-500">Creator uploads</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-zinc-800 bg-zinc-900/60 p-5 shadow-2xl shadow-blue-950/30 backdrop-blur">
+            {featured?.image_url ? (
+              <img
+                src={featured.image_url}
+                alt={featured.title}
+                className="mb-5 h-64 w-full rounded-3xl object-cover"
+              />
+            ) : (
+              <div className="mb-5 flex h-64 w-full items-center justify-center rounded-3xl bg-zinc-950 text-zinc-500">
+                Featured addon preview
+              </div>
+            )}
+
+            <p className="mb-2 text-sm font-medium text-blue-300">
+              ⭐ Featured Addon
+            </p>
+
+            <h2 className="mb-3 text-2xl font-bold">
+              {featured?.title ?? "Your addon could be featured here"}
+            </h2>
+
+            <p className="mb-5 line-clamp-3 text-sm leading-7 text-zinc-400">
+              {featured
+                ? featured.description
+                : "Upload your first aircraft, livery, scenery or utility and become part of the FlightMods creator community."}
+            </p>
+
+            <div className="flex items-center justify-between gap-4">
+              <Link
+                href={featured ? `/addons/${featured.id}` : "/upload"}
+                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-700"
+              >
+                {featured ? "View Featured" : "Upload Now"}
+              </Link>
+
+              <span className="text-sm text-zinc-500">
+                {featured ? `${featured.downloads} downloads` : "Creator space"}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-16 rounded-3xl border border-zinc-800 bg-zinc-900/50 p-6 backdrop-blur">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+                For pilots
+              </p>
+              <h3 className="mb-2 text-xl font-bold">Find new addons faster</h3>
+              <p className="text-sm leading-7 text-zinc-400">
+                Browse selected community uploads for MSFS 2020, MSFS 2024 and
+                X-Plane without clutter.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+                For creators
+              </p>
+              <h3 className="mb-2 text-xl font-bold">Share your work</h3>
+              <p className="text-sm leading-7 text-zinc-400">
+                Upload your mods, manage your creator profile and build
+                visibility for your projects.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+                Community
+              </p>
+              <h3 className="mb-2 text-xl font-bold">Join the early phase</h3>
+              <p className="text-sm leading-7 text-zinc-400">
+                FlightMods is still growing. Early creators help shape the
+                platform from the beginning.
+              </p>
+            </div>
           </div>
         </section>
 
         <section className="mb-16">
-          <h2 className="text-2xl font-semibold mb-6">Latest Addons</h2>
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+                Fresh uploads
+              </p>
+              <h2 className="text-3xl font-bold">Latest Addons</h2>
+            </div>
+
+            <Link
+              href="/addons"
+              className="rounded-xl bg-zinc-800 px-4 py-2 text-sm transition hover:bg-zinc-700"
+            >
+              View all
+            </Link>
+          </div>
 
           {loading ? (
             <p className="text-zinc-400">Loading...</p>
+          ) : latest.length === 0 ? (
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-zinc-400">
+              No addons yet. Be the first creator to upload one.
+            </div>
           ) : (
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-3">
               {latest.map((addon) => (
                 <Link
                   key={addon.id}
                   href={`/addons/${addon.id}`}
                   className="group border border-zinc-800 rounded-2xl p-4 bg-zinc-900/60 backdrop-blur hover:bg-zinc-800/70 transition"
                 >
-                  {addon.image_url && (
+                  {addon.image_url ? (
                     <img
                       src={addon.image_url}
                       alt={addon.title}
                       className="w-full h-44 object-cover rounded-xl mb-4 group-hover:scale-[1.01] transition"
                     />
+                  ) : (
+                    <div className="mb-4 h-44 w-full rounded-xl bg-zinc-950" />
                   )}
 
                   <h3 className="text-lg font-semibold group-hover:text-blue-400">
@@ -203,25 +278,49 @@ export default function Home() {
           )}
         </section>
 
-        <section>
-          <h2 className="text-2xl font-semibold mb-6">🔥 Trending Addons</h2>
+        <section className="mb-16">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
+                Popular now
+              </p>
+              <h2 className="text-3xl font-bold">🔥 Trending Addons</h2>
+            </div>
+
+            <Link
+              href="/addons"
+              className="rounded-xl bg-zinc-800 px-4 py-2 text-sm transition hover:bg-zinc-700"
+            >
+              Explore library
+            </Link>
+          </div>
 
           {loading ? (
             <p className="text-zinc-400">Loading...</p>
+          ) : trending.length === 0 ? (
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-8 text-zinc-400">
+              Trending addons will appear here once downloads and ratings grow.
+            </div>
           ) : (
-            <div className="grid md:grid-cols-3 gap-6">
-              {trending.map((addon) => (
+            <div className="grid gap-6 md:grid-cols-3">
+              {trending.map((addon, index) => (
                 <Link
                   key={addon.id}
                   href={`/addons/${addon.id}`}
-                  className="group border border-zinc-800 rounded-2xl p-4 bg-zinc-900/60 backdrop-blur hover:bg-zinc-800/70 transition"
+                  className="group relative border border-zinc-800 rounded-2xl p-4 bg-zinc-900/60 backdrop-blur hover:bg-zinc-800/70 transition"
                 >
-                  {addon.image_url && (
+                  <div className="absolute left-6 top-6 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-blue-300 backdrop-blur">
+                    #{index + 1}
+                  </div>
+
+                  {addon.image_url ? (
                     <img
                       src={addon.image_url}
                       alt={addon.title}
                       className="w-full h-44 object-cover rounded-xl mb-4 group-hover:scale-[1.01] transition"
                     />
+                  ) : (
+                    <div className="mb-4 h-44 w-full rounded-xl bg-zinc-950" />
                   )}
 
                   <h3 className="text-lg font-semibold group-hover:text-blue-400">
@@ -248,6 +347,32 @@ export default function Home() {
               ))}
             </div>
           )}
+        </section>
+
+        <section className="rounded-3xl border border-blue-400/20 bg-blue-500/10 p-8 text-center backdrop-blur">
+          <h2 className="mb-3 text-3xl font-bold">Are you a creator?</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-zinc-300">
+            Upload your first addon, create your public creator profile and help
+            build the FlightMods library from the beginning.
+          </p>
+
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <Link
+              href="/upload"
+              className="rounded-2xl bg-blue-600 px-7 py-4 font-semibold shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+            >
+              Upload your addon
+            </Link>
+
+            <a
+              href="https://discord.gg/SxxDtTcX"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl bg-indigo-600 px-7 py-4 font-semibold shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700"
+            >
+              Join Discord
+            </a>
+          </div>
         </section>
       </div>
     </main>
